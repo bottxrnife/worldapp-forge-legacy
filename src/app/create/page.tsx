@@ -26,11 +26,13 @@ export default function CreatePage() {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
 
   const send = async (text: string) => {
     const prompt = text.trim();
     if (!prompt || busy) return;
     setInput("");
+    if (taRef.current) taRef.current.style.height = "auto";
     setMessages((m) => [...m, { role: "user", text: prompt }]);
     setBusy(true);
     try {
@@ -123,15 +125,31 @@ export default function CreatePage() {
 
       {/* composer — floats just above the oval bar (not fullscreen) */}
       <div className="pointer-events-none fixed inset-x-0 z-30 mx-auto max-w-md px-5" style={{ bottom: NAV_CLEARANCE - 8 }}>
-        <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface p-1.5 shadow-[0_6px_24px_rgba(11,16,32,0.12)] ring-1 ring-wash">
-          <input
+        <div className="pointer-events-auto flex items-end gap-2 rounded-3xl bg-surface p-1.5 shadow-[0_6px_24px_rgba(11,16,32,0.12)] ring-1 ring-wash">
+          <textarea
+            ref={taRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send(input)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+            }}
+            onKeyDown={(e) => {
+              // Enter inserts a newline; Cmd/Ctrl+Enter sends.
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
+            rows={1}
             placeholder="Describe your Spark…"
-            className="flex-1 bg-transparent px-4 py-2.5 text-sm outline-none"
+            className="max-h-[120px] flex-1 resize-none bg-transparent px-4 py-2.5 text-sm leading-relaxed outline-none"
           />
-          <button onClick={() => send(input)} disabled={busy} className="h-10 w-10 rounded-full bg-cta text-lg text-cta-text disabled:opacity-50">
+          <button
+            onClick={() => send(input)}
+            disabled={busy}
+            className="h-10 w-10 shrink-0 rounded-full bg-cta text-lg text-cta-text disabled:opacity-50"
+          >
             ↑
           </button>
         </div>
