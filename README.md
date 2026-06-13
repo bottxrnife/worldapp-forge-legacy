@@ -26,8 +26,8 @@ All keys go in `.env` (restart `npx expo start -c` after editing). Each layer fa
 |---|---|---|
 | `EXPO_PUBLIC_ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | The real design agent: an LLM with tool calling that reads your wallet, browses the store, resolves ENS names, checks subname availability, simulates LI.FI routes, and drafts schema-validated dapp manifests. Without it: deterministic template drafting. |
 | `EXPO_PUBLIC_WORLD_APP_ID` + `EXPO_PUBLIC_WORLD_ACTION` | [developer.worldcoin.org](https://developer.worldcoin.org) — create an app and an incognito action | Real proof-of-human: the app deep-links into World App via the Wallet Bridge and verifies the returned proof against the Developer Portal. Gates creation and one-per-human dapps. |
-| `EXPO_PUBLIC_LIFI_API_KEY` | [portal.li.fi](https://portal.li.fi) | Higher-rate LI.FI quotes/status. Quotes work without a key too. |
-| `EXPO_PUBLIC_NAMESTONE_API_KEY` + `EXPO_PUBLIC_ENS_DOMAIN` | [namestone.com](https://namestone.com) (key for a domain you control) | Two things: (1) Publishing writes a **real gasless ENS subname** (`label.yourdomain.eth`) with the dapp manifest in its text records. (2) **On-chain loyalty** — your punch card + points are written to your own subname (`m<addr>.yourdomain.eth`) in the `app.loyalty` text record, so the punch count lives on ENS (read on app open, written on every stamp). Without the key, loyalty falls back to the local device cache. |
+| `EXPO_PUBLIC_LIFI_API_KEY` | [portal.li.fi](https://portal.li.fi) | Higher-rate LI.FI quotes/status + Composer. Quotes work without a key too. |
+| `EXPO_PUBLIC_ENS_DOMAIN` (+ `EXPO_PUBLIC_ETH_RPC_URL`) | none — **pure ENS via viem** | The namespace for dapp / agent identities (`label.yourdomain.eth`, `assistant.agent.yourdomain.eth`). Resolution, reverse names, ENSIP-5 text records, ENSIP-12 avatars, and ENSIP-26 agent records (`agent-context`, `agent-endpoint[<protocol>]`) all resolve from L1 through the **Universal Resolver** — no API key. Loyalty punch cards are read from each user's `dappdock.loyalty` text record (set it in any ENS manager); otherwise the local device cache is authoritative. |
 
 ## The wallet
 
@@ -40,7 +40,7 @@ A burner wallet is generated on first launch and stored in the device keychain (
 
 The whole app is built on exactly three sponsor integrations, each with a real keyed path and a graceful simulated fallback:
 
-- **ENS** — identity **and** storage. ENS names resolve recipients/treasuries; NameStone issues gasless subnames; and the **loyalty punch card + points are stored on-chain in ENS text records** (`app.loyalty` under each user's subname), not just on-device.
+- **ENS** — identity **and** storage, pure viem (no third-party subname service). ENS names resolve recipients/treasuries; the design agent has a verifiable ENSIP-25/26 identity (`assistant.agent.<domain>` with `agent-context` / `agent-endpoint` records); and the **loyalty punch card lives in an ENSIP-5 text record** (`dappdock.loyalty` on each user's primary name) — a credential stored in ENS rather than a private DB.
 - **World ID** — proof-of-human / one-per-human: loyalty cards, red-packet claims, reviews, and gated dapps all break without it.
 - **LI.FI** — cross-chain USDC: every payment, order total, tip, and send is routed from any chain.
 
@@ -51,9 +51,9 @@ The whole app is built on exactly three sponsor integrations, each with a real k
   - `agent.ts` — the LLM agent loop (Anthropic Messages API + toolbelt; drafting/simulating only — spending and publishing always require human confirmation).
   - `manifest.ts` — schema validation gate; the runtime only renders validated manifests.
   - `execution.ts` — LI.FI quote/simulate/execute + status polling (`runFlow` accepts amount/recipient overrides).
-  - `identity.ts` — ENS resolution (viem) + NameStone subname publishing.
-  - `onchain.ts` — **loyalty ↔ ENS text records** (NameStone `set-name` write, `get-names` + viem read), with local-cache fallback.
-  - `verification.ts` — World ID Wallet Bridge (pure-JS AES-GCM) + proof verification.
+  - `identity.ts` — ENS via viem (Universal Resolver): resolution, reverse names, ENSIP-5 text records, ENSIP-12 avatars, ENSIP-26 agent records; `publishSubname` assigns the dapp its `label.<domain>` identity.
+  - `onchain.ts` — **loyalty ↔ ENS text record** (`dappdock.loyalty` read via viem), with local-cache fallback.
+  - `verification.ts` — World ID 4.0 proof-of-human (Wallet Bridge, pure-JS AES-GCM) + `/api/v4/verify` proof validation.
   - `wallet.ts` — embedded burner wallet (expo-secure-store) + multichain balances + `sendUsdc` + key backup.
   - `loyalty.ts` / `notify.ts` / `biometric.ts` / `links.ts` — tier helpers, optional local notifications, optional biometric spend-gate, shared deep-link parsing.
 - `src/data/seeds.ts` — seeded store listings (every listing is a manifest; store, detail, and runtime are all views over the same schema).

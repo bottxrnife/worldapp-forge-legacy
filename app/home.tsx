@@ -79,7 +79,7 @@ export default function Home() {
     getWalletSnapshot()
       .then((w) => {
         setWallet(w);
-        // pull the punch card from ENS (no-op without a NameStone key)
+        // hydrate loyalty from the user's ENS profile text record, if any
         syncLoyaltyFromChain();
       })
       .catch(() => {});

@@ -2,7 +2,6 @@ import { Redirect, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { BackButton, PrimaryButton, Screen, Txt } from '../src/components/ui';
-import { hasEnsCreds } from '../src/services/env';
 import { publishSubname } from '../src/services/identity';
 import { listingFromManifest, useApp } from '../src/state/store';
 import { C } from '../src/theme';
@@ -84,8 +83,8 @@ export default function Publish() {
 
       <View style={{ gap: 8, marginTop: 16 }}>
         <CheckRow
-          title="ENS name reserved"
-          sub={`${draft.ensName} · metadata in text records${hasEnsCreds() ? '' : ' (simulated — add NameStone key)'}`}
+          title="ENS identity assigned"
+          sub={`${draft.ensName} · manifest in ENS text records (register on-chain to go live)`}
         />
         <CheckRow
           title="World ID rule set"

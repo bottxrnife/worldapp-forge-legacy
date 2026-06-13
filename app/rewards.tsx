@@ -105,7 +105,7 @@ export default function Rewards() {
             }}
           />
           <Txt size={11} w={600} color="#8C9BCB">
-            {loyaltyOnchain ? 'Synced to ENS text records' : 'Saved on device · add an ENS key to sync'}
+            {loyaltyOnchain ? 'Synced from your ENS profile' : 'Saved on device · set a dappdock.loyalty ENS record to sync'}
           </Txt>
         </View>
       </View>

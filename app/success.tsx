@@ -46,7 +46,7 @@ export default function Success() {
         </Txt>
         {!live && (
           <Txt size={12} color={C.text3} center style={{ marginTop: 8 }}>
-            ENS write simulated — add a NameStone key for a real subname.
+            ENS identity assigned · register {draft?.ensName ?? 'the name'} on-chain to resolve it live.
           </Txt>
         )}
         <Pressable

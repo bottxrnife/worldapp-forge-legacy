@@ -20,9 +20,9 @@ When you change architecture, add screens, wire integrations, fix bugs, or alter
 
 > **SDK note:** SDK 56 is **not** on Play/App Store as of 2026-06. Do not upgrade to SDK 56 unless the user explicitly wants dev builds or sideloaded Expo Go from expo.dev/go.
 
-**Sponsor tracks (exactly three — do not add a fourth blockchain integration):** **ENS** (`identity.ts` + `onchain.ts` via NameStone, viem resolution) is identity **and** on-chain storage; **World ID** (`verification.ts`) is proof-of-human / one-per-human; **LI.FI** (`execution.ts`) is cross-chain USDC routing. The Anthropic agent is an AI feature, not a sponsor track. Every integration has a real keyed path and a non-failing simulated fallback — see §6.
+**Sponsor tracks (exactly three — do not add a fourth blockchain integration):** **ENS** (`identity.ts` + `onchain.ts`, **pure viem via the Universal Resolver — no NameStone/third-party service**) is identity **and** on-chain storage (resolution, ENSIP-5 text records, ENSIP-25/26 agent identity); **World ID 4.0** (`verification.ts`) is proof-of-human / one-per-human; **LI.FI Composer** (`execution.ts` + `composer.ts`) is cross-chain USDC routing + composed onchain flows. The Anthropic agent is an AI feature, not a sponsor track. Every integration has a real keyed path and a non-failing simulated fallback — see §6.
 
-**On-chain by design:** the loyalty **punch count + points live on ENS** (text records via NameStone), not just on-device — read on app open, written on every stamp. See §6b.
+**On-chain by design:** the loyalty **punch count + points are read from ENS** (the `dappdock.loyalty` ENSIP-5 text record on the user's primary name) — a credential stored in ENS, not just on-device. See §6b.
 
 **Design source of truth:** `design_handoff_dappdock/` — `README.md` (pixel spec), `BUILD_GUIDE.md` (architecture), `dapp-manifest.example.json` (manifest schema), `DappDock.dc.html` + `support.js` (interactive prototype). Home ships **Variant A** (Classic hub) only; B/C exist in the prototype but were not implemented.
 
@@ -60,9 +60,9 @@ When you change architecture, add screens, wire integrations, fix bugs, or alter
 19. Created `src/state/store.ts` (Zustand) — session, wallet snapshot, listings, agent conversation (`apiHistory` + `UiMessage[]`), draft manifest, simulation result, builder credits.
 
 ### Phase 4 — Core services (BUILD_GUIDE’s 7 services)
-20. **`src/services/env.ts`** — reads `EXPO_PUBLIC_*` vars; `hasWorldCreds()`, `hasEnsCreds()`.
+20. **`src/services/env.ts`** — reads `EXPO_PUBLIC_*` vars; `hasWorldCreds()`, `hasLifiKey()`.
 21. **`src/services/manifest.ts`** — `validateManifest()` gates agent output; enforces component types, plain-English permissions, 2–6 workflow steps, no raw addresses in permissions.
-22. **`src/services/identity.ts`** — ENS resolve via viem mainnet; `publishSubname()` via NameStone REST API when keyed, else simulated delay.
+22. **`src/services/identity.ts`** — pure ENS via viem mainnet (Universal Resolver): resolve/reverse, ENSIP-5 text records, ENSIP-12 avatars, ENSIP-26 agent records; `publishSubname()` assigns `label.<domain>` (live when it already resolves on-chain).
 23. **`src/services/verification.ts`** — World ID Wallet Bridge (encrypt request → deep link World App → poll bridge → verify on Developer Portal). Simulated when no `WORLD_APP_ID`.
 24. **`src/services/execution.ts`** — LI.FI quote/simulate; **real execution** when wallet funded (approve + send + poll `li.quest/v1/status`); unfunded = validated quote + spec timeline timing.
 25. **`src/services/wallet.ts`** — burner key in `expo-secure-store`; balances on Base/Arbitrum/Optimism/Polygon USDC + native gas.
@@ -140,11 +140,11 @@ dapp-dock/
 │       ├── agent.ts              # LLM agent + toolbelt (PRIMARY)
 │       ├── assistant.ts          # Template fallback manifest generator
 │       ├── manifest.ts           # Schema validation
-│       ├── identity.ts           # ENS resolve + NameStone publish
+│       ├── identity.ts           # ENS via viem (resolve, text records, ENSIP-26 agent records)
 │       ├── verification.ts       # World ID bridge + verify
 │       ├── execution.ts          # LI.FI simulate + execute (runFlow accepts overrides)
 │       ├── wallet.ts             # Embedded burner wallet + sendUsdc + exportPrivateKey
-│       ├── onchain.ts            # Loyalty ↔ ENS text records (NameStone write, viem read)
+│       ├── onchain.ts            # Loyalty ← ENS text record (pure viem getEnsText read)
 │       ├── loyalty.ts            # Tier ladder + points/pass aggregation helpers
 │       ├── notify.ts             # Optional local notifications (expo-notifications)
 │       ├── biometric.ts          # Optional spend gate (expo-local-authentication)
@@ -199,10 +199,10 @@ Tab bar (home, store, profile): center FAB → /scan; Create → /assistant; Pro
 | `messages` | UI chat: `chat` \| `activity` \| `card` messages |
 | `agentBusy` | Disables input while agent runs |
 | `draft` | Current generated `DappManifest` |
-| `draftPublishedLive` | Whether last publish hit real NameStone |
+| `draftPublishedLive` | Whether the published name already resolves on-chain (real ENS registration) |
 | `simulation` | Last `SimulationResult` from LI.FI |
-| `loyalty` | Per-dapp `LoyaltyRecord` (`punches`, `points`, `redeemed`); `addStamp` / `redeemReward(ens, cardSize)` / `spendPoints(ens, cost, label)→bool`. Every mutation mirrors to ENS via `pushLoyaltyOnchain` (see §6b) |
-| `loyaltyOnchain` | `true` once a loyalty write has landed on ENS; drives the "Stamps stored on ENS / Synced to ENS" indicators on `PunchCard` + `/rewards` |
+| `loyalty` | Per-dapp `LoyaltyRecord` (`punches`, `points`, `redeemed`); `addStamp` / `redeemReward(ens, cardSize)` / `spendPoints(ens, cost, label)→bool`. Persisted to the local SecureStore cache; ENS is the read-through overlay (see §6b) |
+| `loyaltyOnchain` | `true` once a loyalty card was **read** from the user's ENS `dappdock.loyalty` text record (`syncLoyaltyFromChain`); drives the "Synced from your ENS profile" indicator on `PunchCard` + `/rewards` |
 | `activity` | `ActivityEntry[]` receipts feed; `recordActivity(e)` (capped 100) |
 | `savedEns` | Favorited dapp ENS list; `toggleSave(ens)` / `isSaved(ens)` |
 | `userListings` | User-published listings (merged ahead of seeds into `listings`) |
@@ -223,38 +223,40 @@ Tab bar (home, store, profile): center FAB → /scan; Create → /assistant; Pro
 | `EXPO_PUBLIC_ANTHROPIC_API_KEY` | `agent.ts` | Claude tool-calling agent | `assistant.ts` template generator; UI shows “template mode” |
 | `EXPO_PUBLIC_WORLD_APP_ID` + `WORLD_ACTION` | `verification.ts` | Wallet Bridge → World App → verify API | Simulated verify (~1.4s) |
 | `EXPO_PUBLIC_LIFI_API_KEY` | `execution.ts` | Higher rate limits on quotes/status | Quotes still work, rate-limited |
-| `EXPO_PUBLIC_NAMESTONE_API_KEY` + `ENS_DOMAIN` | `identity.ts` (publish) + `onchain.ts` (loyalty) | Gasless subname + manifest text records on publish; **loyalty punch/points written to each user's `app.loyalty` text record** | Simulated publish (~900ms); loyalty falls back to the local SecureStore cache |
-| `EXPO_PUBLIC_ETH_RPC_URL` | `identity.ts` + `onchain.ts` | Mainnet ENS resolution + loyalty text-record reads | Defaults to publicnode |
+| `EXPO_PUBLIC_ENS_DOMAIN` | `identity.ts` (publish/resolve) + `onchain.ts` (loyalty) | **Pure ENS via viem** — no third-party subname service. Namespace for dapp/agent identities; resolution, reverse names, ENSIP-5 text records, ENSIP-12 avatars, ENSIP-26 agent records all from L1 via the Universal Resolver. Loyalty read from each user's `dappdock.loyalty` text record | No key needed; loyalty falls back to local SecureStore cache when no record/primary name |
+| `EXPO_PUBLIC_ETH_RPC_URL` | `identity.ts` + `onchain.ts` | Mainnet ENS resolution + loyalty/agent text-record reads | Defaults to publicnode |
 
 **Wallet (no env):** Auto-generated burner on device (expo-secure-store). Fund with USDC + gas on Base/Arbitrum/Optimism/Polygon for real LI.FI execution / `sendUsdc`; unfunded = simulated timeline. `exportPrivateKey()` reveals the key for backup (behind the biometric gate).
 
-**Every function is real-with-fallback (audited 2026-06-13):** no integration throws into the UI when its key is missing or a network call fails — each returns a clearly-labeled simulated result. Only the three sponsor hosts + the Anthropic agent are contacted: `namestone.com`, an Ethereum RPC, `li.quest`, `bridge.worldcoin.org` / `developer.worldcoin.org`, `api.anthropic.com`. Do not add other external hosts.
+**Every function is real-with-fallback (audited 2026-06-13):** no integration throws into the UI when its key is missing or a network call fails — each returns a clearly-labeled simulated result. Only the three sponsor hosts + the Anthropic agent are contacted: an Ethereum RPC (ENS, via the Universal Resolver), `li.quest` (LI.FI + Composer), `bridge.worldcoin.org` / `developer.world.org` (World ID 4.0), `api.anthropic.com`. Do not add other external hosts (no NameStone — ENS is the sponsor track, used directly).
 
 ---
 
 ## 6b. On-chain storage (ENS) & sponsor-track mapping
 
-**Why ENS for storage:** the project is limited to its three implemented sponsor tracks, and "everything on-chain (incl. the punch count)" maps cleanly onto **ENS text records** — exactly the ENS "Most Creative Use" pattern ("store credentials in text records, subnames as access tokens"). No 4th sponsor / no custom contract needed.
+**Why ENS for storage:** the project is limited to its three implemented sponsor tracks, and "everything on-chain (incl. the punch count)" maps cleanly onto **ENS text records** — exactly the ENS "Most Creative Use" pattern ("store credentials in text records, subnames as access tokens"). **Pure ENS via viem — no NameStone or any third-party subname service** (ENS itself is the sponsor track). No 4th sponsor / no custom contract needed.
 
-**Loyalty on ENS (`src/services/onchain.ts`):**
-- Each user gets a gasless NameStone subname **`m<first-12-hex-of-address>.<ENS_DOMAIN>`** (`memberLabel`/`memberEns`).
-- The punch card lives in that subname's **`app.loyalty` text record** as JSON `{ "<dappEns>": { punches, points, redeemed }, … }` (+ an `app.updated` timestamp).
-- **Write** (`writeLoyalty`): NameStone `POST /api/public_v1/set-name` (full text-records replace — we keep the whole loyalty map in one record). Called fire-and-forget from the store's `pushLoyaltyOnchain` after every `addStamp` / `redeemReward` / `spendPoints`. Returns `true` only when it actually hits NameStone → flips `loyaltyOnchain`.
-- **Read** (`readLoyalty`): NameStone `GET /api/public_v1/get-names?domain=&address=` (primary), then a **viem `getEnsText` CCIP-Read** fallback. `syncLoyaltyFromChain()` (Home, after wallet load) merges chain → local cache (chain wins).
-- **Fallback:** `hasEnsCreds()` false → `readLoyalty` returns `null`, `writeLoyalty` returns `false`; the local SecureStore cache is authoritative and the UI shows "Saved on device". With a key it shows "Stamps stored on ENS".
+**ENS is used directly (per the ENS docs / llms-full.txt):**
+- All resolution starts on L1 mainnet through the **Universal Resolver** (`0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe`), which viem ≥2 targets automatically — this is ENSv2- and CCIP-Read-ready (offchain/L2 subnames resolve transparently).
+- **Agent identity (ENSIP-25 + ENSIP-26):** the design agent is `assistant.agent.<ENS_DOMAIN>`. `identity.ts` reads its `agent-context` and `agent-endpoint[<protocol>]` text records (`getAgentContext` / `getAgentEndpoint` / `getAgentProfile`) — a verifiable on-chain identity, not a cosmetic label.
+- **Loyalty on ENS (`src/services/onchain.ts`):** the punch card lives in the user's **`dappdock.loyalty` ENSIP-5 text record** on their primary name, as JSON `{ "<dappEns>": { punches, points, redeemed }, … }` — a credential stored in ENS.
+  - **Read** (`readLoyalty`): reverse-resolve the wallet → primary name (`lookupAddress`), then `getEnsText(name, 'dappdock.loyalty')` via the Universal Resolver. `syncLoyaltyFromChain()` (Home, after wallet load) merges chain → local cache (chain wins) and flips `loyaltyOnchain`.
+  - **Write:** the in-app burner wallet can't write records on a name it doesn't own without an on-chain tx, so writes stay in the local SecureStore cache (the writable source of truth); ENS is the read-through overlay. Users opt in by setting the record on their own name in any ENS manager / ENSIP-5 resolver / CCIP-Read gateway.
+  - **Fallback:** no primary name / no record → `readLoyalty` returns `null`; local cache is authoritative ("Saved on device"). When a record is found the UI shows "Synced from your ENS profile".
 
 **Mapping each feature to a sponsor track (all real-with-fallback):**
 
 | Feature | ENS | World ID | LI.FI |
 |---|---|---|---|
-| Loyalty punch card / points | **stores punches+points in text records** | one-card-per-human gate | order/purchase settles any-chain |
+| Loyalty punch card / points | **stores punches+points in a text record** | one-card-per-human gate | order/purchase settles any-chain |
 | Restaurant order-ahead (`menu`) | merchant treasury name | optional | cart total routed cross-chain |
 | Red packets / lucky money | sender name | **one-claim-per-human** | claim payout (escrow simulated) |
 | Pay-by-ENS (`/pay`) | **resolve `alice.eth`** | — | `sendUsdc` routes USDC |
 | Reviews | (authored credential) | **one-review-per-human** (nullifier) | — |
-| Publish a dapp | **gasless subname + manifest records** | verified creator | — |
+| Design agent | **ENSIP-25/26 identity (`agent-context`)** | human-backed creator | drafts LI.FI/Composer flows |
+| Publish a dapp | **`label.<domain>` identity + manifest records** | verified creator | — |
 
-**Extending on-chain storage:** reuse `onchain.ts` pattern — write a JSON blob to a text record via NameStone `set-name`, read via `get-names` + viem fallback, gate on `hasEnsCreds()`, never throw. (Reviews/red-packets are currently local-only; the same helper could push them to ENS if asked.)
+**Extending on-chain storage:** reuse the `onchain.ts` pattern — store a JSON blob in an ENSIP-5 text record and read it via viem `getEnsText` (Universal Resolver, CCIP-Read aware), never throw. To make writes first-class, set the record from a name the wallet owns (on-chain `setText`) or via a CCIP-Read offchain resolver / gateway you control — still pure ENS, no third-party API.
 
 ---
 
@@ -332,8 +334,8 @@ npx expo start --tunnel -c   # prefer tunnel for physical devices
 | “Incompatible SDK version” | Project SDK ≠ store Expo Go SDK | Keep project on SDK 54; or install matching Expo Go from [expo.dev/go](https://expo.dev/go) (Android) |
 | Agent says “template mode” | No Anthropic key | Set `EXPO_PUBLIC_ANTHROPIC_API_KEY`, restart with `-c` |
 | Runtime always simulated | Wallet unfunded | Send USDC + gas to address on Profile |
-| Publish says simulated ENS | No NameStone key | Set `EXPO_PUBLIC_NAMESTONE_API_KEY` |
-| Punch card says "Saved on device" (not ENS) | No NameStone key → loyalty stays local | Set `EXPO_PUBLIC_NAMESTONE_API_KEY` + `ENS_DOMAIN`; reopen Home to `syncLoyaltyFromChain()` |
+| Publish says simulated ENS | The `label.<domain>` name doesn't resolve on-chain yet | Register the subname for real (on-chain / your own resolver); `publishSubname` flips `live` when it resolves |
+| Punch card says "Saved on device" (not ENS) | Wallet has no primary ENS name, or no `dappdock.loyalty` text record | Set a primary name + a `dappdock.loyalty` JSON text record in any ENS manager; reopen Home to `syncLoyaltyFromChain()` |
 | `Unable to resolve module react-native-qrcode-svg / expo-notifications / expo-local-authentication` | Optional deps not installed | `npx expo install react-native-qrcode-svg expo-notifications expo-local-authentication` |
 | World ID fails on device | Missing World App / wrong app id | Install World App; check `WORLD_APP_ID` format `app_...` |
 | `simctl` warning on Mac | No Xcode simulators | Ignore for Expo Go; only affects iOS simulator |

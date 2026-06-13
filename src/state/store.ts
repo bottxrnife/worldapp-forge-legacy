@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { SEED_LISTINGS } from '../data/seeds';
 import type { ApiMessage } from '../services/agent';
 import { SimulationResult } from '../services/execution';
-import { readLoyalty, writeLoyalty } from '../services/onchain';
+import { readLoyalty } from '../services/onchain';
 import type { WalletSnapshot } from '../services/wallet';
 import { setActivePalette, ThemeMode } from '../theme';
 import { DappListing, DappManifest } from '../types';
@@ -166,25 +166,11 @@ export async function loadPersistedState() {
 }
 
 /**
- * Mirror the loyalty map to the user's ENS text record (sponsor: ENS). Fire-and-
- * forget and non-blocking — a missing NameStone key or any failure just leaves
- * the local SecureStore cache as the source of truth. Flips `loyaltyOnchain`
- * true once a write actually lands on-chain so the UI can show "Synced to ENS".
- */
-function pushLoyaltyOnchain(loyalty: Record<string, LoyaltyRecord>) {
-  const address = useApp.getState().wallet?.address;
-  if (!address) return;
-  writeLoyalty(address, loyalty)
-    .then((live) => {
-      if (live && !useApp.getState().loyaltyOnchain) useApp.setState({ loyaltyOnchain: true });
-    })
-    .catch(() => {});
-}
-
-/**
- * Hydrate the loyalty map from the user's ENS text record (chain wins over the
- * local cache for shared keys). Safe no-op without a NameStone key. Call once
- * the wallet address is known (e.g. from the Home/Rewards screens).
+ * Hydrate the loyalty map from the user's ENS `dappdock.loyalty` text record
+ * (read-through; chain wins over the local cache for shared keys). Pure ENS via
+ * viem — safe no-op when the wallet has no primary ENS name or no such record.
+ * Call once the wallet address is known (e.g. from Home). The local SecureStore
+ * cache remains the writable source of truth (see onchain_service).
  */
 export async function syncLoyaltyFromChain() {
   const address = useApp.getState().wallet?.address;
@@ -213,7 +199,7 @@ type AppState = {
 
   // loyalty passes (punch cards / points per dapp) — mirrored to ENS text records
   loyalty: Record<string, LoyaltyRecord>;
-  loyaltyOnchain: boolean; // true once a loyalty write has landed on ENS
+  loyaltyOnchain: boolean; // true once a loyalty card was read from the user's ENS profile
   addStamp: (ens: string, points: number) => void;
   redeemReward: (ens: string, cardSize: number) => void;
   spendPoints: (ens: string, cost: number, rewardLabel: string) => boolean;
@@ -297,7 +283,6 @@ export const useApp = create<AppState>((set, get) => ({
       [ens]: { ...prev, punches: prev.punches + 1, points: prev.points + points },
     };
     persistJSON(KEYS.loyalty, loyalty);
-    pushLoyaltyOnchain(loyalty);
     set({ loyalty });
   },
   redeemReward: (ens, cardSize) => {
@@ -307,7 +292,6 @@ export const useApp = create<AppState>((set, get) => ({
       [ens]: { ...prev, punches: Math.max(0, prev.punches - cardSize), redeemed: prev.redeemed + 1 },
     };
     persistJSON(KEYS.loyalty, loyalty);
-    pushLoyaltyOnchain(loyalty);
     set({ loyalty });
   },
   spendPoints: (ens, cost, rewardLabel) => {
@@ -318,7 +302,6 @@ export const useApp = create<AppState>((set, get) => ({
       [ens]: { ...prev, points: prev.points - cost },
     };
     persistJSON(KEYS.loyalty, loyalty);
-    pushLoyaltyOnchain(loyalty);
     set({ loyalty });
     get().recordActivity({
       ens,

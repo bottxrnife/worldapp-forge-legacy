@@ -97,7 +97,7 @@ export function PunchCard({
           </Txt>
         )}
       </View>
-      {/* where the punch count lives: ENS text record when keyed, else local */}
+      {/* where the punch count lives: synced from the user's ENS profile, else local */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
         <View
           style={{
@@ -108,7 +108,7 @@ export function PunchCard({
           }}
         />
         <Txt size={11} w={600} color="#8C9BCB">
-          {onchain ? 'Stamps stored on ENS' : 'Stamps saved on device'}
+          {onchain ? 'Synced from your ENS profile' : 'Saved on device'}
         </Txt>
       </View>
     </View>

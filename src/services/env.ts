@@ -12,10 +12,10 @@ export const ENV = {
   // "orb" = proof of unique human (orbLegacy preset, the docs default); "device"
   // is the lower-assurance fallback.
   worldVerificationLevel: process.env.EXPO_PUBLIC_WORLD_VERIFICATION_LEVEL ?? 'orb',
-  // Proof verification endpoint. Per docs.world.org the cloud verifier is
-  // v4 at developer.world.org. Point this at YOUR backend proxy in production
-  // (World ID Track B requires verification in a backend/contract); the app
-  // POSTs the proof to `${worldVerifyUrl}/${worldRpId||worldAppId}`.
+  // Proof verification endpoint. Per docs.world.org the cloud verifier is v4 at
+  // developer.world.org. Point this at YOUR backend proxy in production (World ID
+  // Track B requires verification in a backend/contract); the app POSTs the proof
+  // to `${worldVerifyUrl}/${worldRpId||worldAppId}`.
   worldVerifyUrl: process.env.EXPO_PUBLIC_WORLD_VERIFY_URL ?? 'https://developer.world.org/api/v4/verify',
   worldRpId: process.env.EXPO_PUBLIC_WORLD_RP_ID ?? '',
   // World ID Wallet Bridge (native/mobile connect path).
@@ -29,13 +29,12 @@ export const ENV = {
   lifiComposerUrl: process.env.EXPO_PUBLIC_LIFI_COMPOSER_URL ?? 'https://ethglobal-composer.li.quest',
 
   // ── ENS ───────────────────────────────────────────────────────────────────
-  // NameStone (https://namestone.com) issues gasless subnames + text records
-  // under your domain via REST. Plus any mainnet RPC for L1 resolution.
-  namestoneApiKey: process.env.EXPO_PUBLIC_NAMESTONE_API_KEY ?? '',
+  // Pure ENS via viem on mainnet — resolution, reverse/primary name, text
+  // records and avatars all start from L1 (chainId 1). No third-party subname
+  // service. ensDomain is the namespace used for dapp/agent identities.
   ensDomain: process.env.EXPO_PUBLIC_ENS_DOMAIN ?? 'dappdock.eth',
   rpcUrl: process.env.EXPO_PUBLIC_ETH_RPC_URL ?? 'https://ethereum-rpc.publicnode.com',
 };
 
 export const hasWorldCreds = () => ENV.worldAppId.startsWith('app_');
 export const hasLifiKey = () => ENV.lifiApiKey.length > 0;
-export const hasEnsCreds = () => ENV.namestoneApiKey.length > 0;
