@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
-import { Copy, Moon, Receipt, Sparkles, Sun } from 'lucide-react-native';
+import { Copy, Gift, Moon, Receipt, Sparkles, Sun } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { TabBar } from '../src/components/TabBar';
@@ -76,12 +76,11 @@ export default function Profile() {
     builderCredits,
     publishedCount,
     listings,
+    savedEns,
     wallet,
     setWallet,
     themeMode,
     setThemeMode,
-    savedEns,
-    activity,
   } = useApp();
   const [loadingWallet, setLoadingWallet] = useState(false);
 
@@ -176,8 +175,51 @@ export default function Profile() {
           ))}
         </View>
 
+        {/* rewards + activity quick links */}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+          {[
+            { icon: <Gift size={16} color={C.blueLink} strokeWidth={2.2} />, label: 'Rewards', sub: 'Cards & points', to: '/rewards' },
+            { icon: <Receipt size={16} color={C.blueLink} strokeWidth={2.2} />, label: 'Activity', sub: 'Your receipts', to: '/activity' },
+          ].map((q) => (
+            <Pressable
+              key={q.label}
+              onPress={() => router.push(q.to as any)}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 11,
+                backgroundColor: C.surface,
+                borderRadius: 18,
+                padding: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: C.blueSoft,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {q.icon}
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Txt size={14} w={700}>
+                  {q.label}
+                </Txt>
+                <Txt size={11.5} color={C.text2} style={{ marginTop: 1 }}>
+                  {q.sub}
+                </Txt>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
         {/* embedded wallet */}
-        <SectionHeader title="Wallet" size={17} />
+        <SectionHeader title="Wallet" size={17} link="Open" onLink={() => router.push('/wallet')} />
         <View style={{ backgroundColor: C.surface, borderRadius: 20, padding: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ flex: 1, marginRight: 10 }}>
@@ -207,29 +249,6 @@ export default function Profile() {
               real LI.FI flows. Unfunded runs are simulated.
             </Txt>
           )}
-        </View>
-
-        <SectionHeader title="Shortcuts" size={17} />
-        <View style={{ gap: 8 }}>
-          <ListRow
-            icon={
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
-                  backgroundColor: C.blueSoft,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Receipt size={16} color={C.blueLink} strokeWidth={2.2} />
-              </View>
-            }
-            title="Activity"
-            sub={activity.length ? `${activity.length} receipts` : 'Your receipts from dapp runs'}
-            onPress={() => router.push('/activity')}
-          />
         </View>
 
         <SectionHeader title="Settings" size={17} />
@@ -314,7 +333,7 @@ export default function Profile() {
           ))}
           {saved.length === 0 && (
             <Txt size={13} color={C.text3} style={{ paddingHorizontal: 4 }}>
-              Tap the heart on any dapp detail page to save it here.
+              Tap the heart on any dapp to save it here.
             </Txt>
           )}
         </View>

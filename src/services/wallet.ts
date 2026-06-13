@@ -8,7 +8,6 @@
  * same account to sign real LI.FI transactions when the wallet is funded.
  */
 import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
 import {
   Chain,
   createPublicClient,
@@ -16,10 +15,12 @@ import {
   erc20Abi,
   formatUnits,
   http,
+  parseUnits,
   PublicClient,
 } from 'viem';
 import { privateKeyToAccount, generatePrivateKey, PrivateKeyAccount } from 'viem/accounts';
 import { arbitrum, base, optimism, polygon } from 'viem/chains';
+import { resolveAddress } from './identity';
 
 const KEY_NAME = 'dappdock.wallet.key';
 
@@ -44,21 +45,10 @@ export function publicClientFor(chainId: number): PublicClient {
 let cachedAccount: PrivateKeyAccount | null = null;
 
 async function loadPrivateKey(): Promise<string | null> {
-  if (Platform.OS === 'web') {
-    try {
-      return localStorage.getItem(KEY_NAME);
-    } catch {
-      return null;
-    }
-  }
   return SecureStore.getItemAsync(KEY_NAME);
 }
 
 async function savePrivateKey(pk: string): Promise<void> {
-  if (Platform.OS === 'web') {
-    localStorage.setItem(KEY_NAME, pk);
-    return;
-  }
   await SecureStore.setItemAsync(KEY_NAME, pk);
 }
 
@@ -90,6 +80,54 @@ export type WalletSnapshot = {
   totalUsdc: number;
   balances: ChainBalance[];
 };
+
+export type SendResult = { txHash: `0x${string}`; explorerUrl: string; chainLabel: string };
+
+/**
+ * Send USDC to an address or ENS name. Picks the chain explicitly given, else
+ * the first chain holding enough USDC. Direct erc20 transfer (same-chain) —
+ * for cross-chain delivery the LI.FI path in execution_service is used instead.
+ */
+export async function sendUsdc(opts: {
+  to: string;
+  amountUsd: number;
+  chainId?: number;
+}): Promise<SendResult> {
+  const account = await getAccount();
+  const recipient = opts.to.startsWith('0x')
+    ? (opts.to as `0x${string}`)
+    : await resolveAddress(opts.to);
+  if (!recipient) throw new Error(`Could not resolve ${opts.to}`);
+
+  const snapshot = await getWalletSnapshot();
+  const chainId =
+    opts.chainId ??
+    snapshot.balances.find((b) => b.usdc >= opts.amountUsd && b.native > 0)?.chainId ??
+    CHAINS[0].chain.id;
+  const info = CHAINS.find((c) => c.chain.id === chainId) ?? CHAINS[0];
+
+  const walletClient = walletClientFor(chainId, account);
+  const publicClient = publicClientFor(chainId);
+  const amountRaw = parseUnits(String(opts.amountUsd), 6);
+
+  const txHash = await walletClient.writeContract({
+    address: info.usdc,
+    abi: erc20Abi,
+    functionName: 'transfer',
+    args: [recipient as `0x${string}`, amountRaw],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return {
+    txHash,
+    chainLabel: info.label,
+    explorerUrl: `${info.chain.blockExplorers?.default.url}/tx/${txHash}`,
+  };
+}
+
+/** Reveal the burner private key for backup. Returns null if none exists. */
+export async function exportPrivateKey(): Promise<string | null> {
+  return loadPrivateKey();
+}
 
 export async function getWalletSnapshot(): Promise<WalletSnapshot> {
   const account = await getAccount();
