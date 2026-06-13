@@ -11,7 +11,6 @@ import {
 } from 'lucide-react-native';
 import React, { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { TabBar } from '../src/components/TabBar';
 import { Chip, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
 import { getWalletSnapshot } from '../src/services/wallet';
 import { syncLoyaltyFromChain, useApp } from '../src/state/store';
@@ -254,7 +253,6 @@ export default function Home() {
           />
         </View>
       </Screen>
-      <TabBar active="home" />
     </View>
   );
 }

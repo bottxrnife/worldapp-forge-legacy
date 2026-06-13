@@ -1,25 +1,71 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { House, ScanLine, Sparkles, Store, User } from 'lucide-react-native';
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useApp } from '../state/store';
 import { bgWithAlpha, C } from '../theme';
 import { Txt } from './ui';
 
-type Tab = 'home' | 'store' | 'profile';
+type Tab = 'home' | 'store' | 'create' | 'profile';
 
-export function TabBar({ active }: { active: Tab }) {
+const ROUTE_TO_TAB: Record<string, Tab> = {
+  '/home': 'home',
+  '/store': 'store',
+  '/assistant': 'create',
+  '/profile': 'profile',
+};
+
+/** Approx bottom space the floating bar occupies above the safe-area inset
+ *  (use as content padding so nothing hides behind it). */
+export const TABBAR_CLEARANCE = 88;
+
+/**
+ * Persistent bottom tab bar — rendered ONCE in the root layout so it never
+ * unmounts between tab switches (that remount was the "flash"). It reads the
+ * current route to pick the active tab and whether to show, and animates in/out.
+ * On the Create tab it stays until the assistant goes immersive (the user starts
+ * typing), then slides away for a full-screen chat.
+ */
+export function TabBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const color = (t: Tab) => (active === t ? C.text : C.text3);
+  const pathname = usePathname();
+  const immersive = useApp((s) => s.assistantImmersive);
+  useApp((s) => s.themeMode); // repaint on theme toggle
 
+  const active = ROUTE_TO_TAB[pathname];
+  const visible = !!active && !(active === 'create' && immersive);
+
+  const v = useRef(new Animated.Value(visible ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.timing(v, {
+      toValue: visible ? 1 : 0,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [visible, v]);
+
+  const color = (t: Tab) => (active === t ? C.text : C.text3);
   const go = (t: Tab) => {
-    if (t !== active) router.replace(`/${t}`);
+    const path = t === 'create' ? '/assistant' : `/${t}`;
+    if (pathname !== path) router.replace(path as any);
   };
 
   return (
-    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} pointerEvents="box-none">
+    <Animated.View
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        opacity: v,
+        transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
+      }}
+      pointerEvents={visible ? 'box-none' : 'none'}
+    >
       <LinearGradient
         colors={[bgWithAlpha(0), C.bg, C.bg]}
         locations={[0, 0.4, 1]}
@@ -83,11 +129,11 @@ export function TabBar({ active }: { active: Tab }) {
           </Pressable>
           <Pressable
             testID="tab-create"
-            onPress={() => router.push('/assistant')}
+            onPress={() => go('create')}
             style={{ alignItems: 'center', gap: 3, width: 52 }}
           >
-            <Sparkles size={20} color={C.text3} strokeWidth={2.4} />
-            <Txt size={10.5} w={700} color={C.text3}>
+            <Sparkles size={20} color={color('create')} strokeWidth={2.4} />
+            <Txt size={10.5} w={700} color={color('create')}>
               Create
             </Txt>
           </Pressable>
@@ -99,6 +145,6 @@ export function TabBar({ active }: { active: Tab }) {
           </Pressable>
         </View>
       </LinearGradient>
-    </View>
+    </Animated.View>
   );
 }

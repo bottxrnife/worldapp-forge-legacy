@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { Copy, Gift, Moon, Receipt, Sparkles, Sun } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { TabBar } from '../src/components/TabBar';
 import { Chip, IconTile, ListRow, Screen, SectionHeader, Txt } from '../src/components/ui';
 import { AgentKitStatus, getAgentKitStatus, runHumanBackedTask } from '../src/services/agentkit';
 import { AgentProfile, getAgentProfile } from '../src/services/identity';
@@ -457,7 +456,6 @@ export default function Profile() {
           />
         </View>
       </Screen>
-      <TabBar active="profile" />
     </View>
   );
 }

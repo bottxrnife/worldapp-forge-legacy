@@ -1,7 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { TabBar } from '../src/components/TabBar';
 import { Chip, IconTile, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
 import { useApp } from '../src/state/store';
 import { DappListing } from '../src/types';
@@ -208,7 +207,6 @@ export default function StoreScreen() {
         )}
 
       </Screen>
-      <TabBar active="store" />
     </View>
   );
 }

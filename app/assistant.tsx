@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { ArrowUp, Sparkles } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TABBAR_CLEARANCE } from '../src/components/TabBar';
 import { BackButton, FadeUp, IconTile, Pulse, Txt, TypingDots } from '../src/components/ui';
 import { hasAgentCreds, runAgentTurn } from '../src/services/agent';
 import { LIFI_DIAMOND } from '../src/services/composer';
@@ -207,9 +210,38 @@ export default function Assistant() {
   const scrollRef = useRef<ScrollView>(null);
   const [tab, setTab] = useState<'chat' | 'flow'>('chat');
   const [input, setInput] = useState('');
+  const [focused, setFocused] = useState(false);
 
-  const { messages, agentBusy, apiHistory, draft, simulation, pushMessage, setAgentBusy, setDraft } =
-    useApp();
+  const {
+    messages,
+    agentBusy,
+    apiHistory,
+    draft,
+    simulation,
+    pushMessage,
+    setAgentBusy,
+    setDraft,
+    setAssistantImmersive,
+  } = useApp();
+
+  // Create stays "docked" (the persistent tab bar shows, input floats above it)
+  // until the user engages — then it goes immersive: the tab bar slides away and
+  // the input drops to the bottom for a full-screen chat.
+  const immersive = focused || input.length > 0 || messages.length > 0;
+  const dock = useRef(new Animated.Value(immersive ? 0 : 1)).current; // 1 = docked
+  useEffect(() => {
+    setAssistantImmersive(immersive);
+    Animated.timing(dock, {
+      toValue: immersive ? 0 : 1,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [immersive, dock, setAssistantImmersive]);
+  // leaving Create restores the tab bar across the app
+  useEffect(() => () => setAssistantImmersive(false), [setAssistantImmersive]);
+  const liftY = dock.interpolate({ inputRange: [0, 1], outputRange: [0, -TABBAR_CLEARANCE] });
+  const extraPad = immersive ? 0 : TABBAR_CLEARANCE;
 
   // ENSIP-26: resolve the agent's on-chain identity (address + agent-context).
   // Real ENS read via the Universal Resolver — drives the verified badge below.
@@ -311,7 +343,7 @@ export default function Assistant() {
             <ScrollView
               ref={scrollRef}
               style={{ flex: 1 }}
-              contentContainerStyle={{ padding: 20, paddingBottom: 96 + insets.bottom, gap: 12 }}
+              contentContainerStyle={{ padding: 20, paddingBottom: 96 + insets.bottom + extraPad, gap: 12 }}
               showsVerticalScrollIndicator={false}
             >
               {/* opening bubble */}
@@ -420,66 +452,75 @@ export default function Assistant() {
               )}
             </ScrollView>
 
-            {/* input */}
-            <LinearGradient
-              colors={[bgWithAlpha(0), C.bg, C.bg]}
-              locations={[0, 0.3, 1]}
+            {/* input — floats above the tab bar when docked, drops to the bottom when immersive */}
+            <Animated.View
               style={{
                 position: 'absolute',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                paddingHorizontal: 20,
-                paddingTop: 14,
-                paddingBottom: Math.max(insets.bottom, 12) + 14,
-                flexDirection: 'row',
-                gap: 9,
-                alignItems: 'center',
+                transform: [{ translateY: liftY }],
               }}
+              pointerEvents="box-none"
             >
-              <TextInput
-                value={input}
-                onChangeText={setInput}
-                placeholder="Describe your dapp…"
-                placeholderTextColor={C.text3}
-                onSubmitEditing={() => send(input)}
-                returnKeyType="send"
+              <LinearGradient
+                colors={[bgWithAlpha(0), C.bg, C.bg]}
+                locations={[0, 0.3, 1]}
                 style={{
-                  flex: 1,
-                  backgroundColor: C.surface,
-                  borderRadius: 999,
-                  paddingVertical: 14,
-                  paddingHorizontal: 18,
-                  fontSize: 14,
-                  fontFamily: 'Geist_400Regular',
-                  color: C.text,
-                  shadowColor: '#0B1020',
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: 2,
-                }}
-              />
-              <Pressable
-                onPress={() => send(input)}
-                style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 23,
-                  backgroundColor: C.cta,
+                  paddingHorizontal: 20,
+                  paddingTop: 14,
+                  paddingBottom: Math.max(insets.bottom, 12) + 14,
+                  flexDirection: 'row',
+                  gap: 9,
                   alignItems: 'center',
-                  justifyContent: 'center',
                 }}
               >
-                <ArrowUp size={19} color={C.ctaText} strokeWidth={2.4} />
-              </Pressable>
-            </LinearGradient>
+                <TextInput
+                  value={input}
+                  onChangeText={setInput}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  placeholder="Describe your dapp…"
+                  placeholderTextColor={C.text3}
+                  onSubmitEditing={() => send(input)}
+                  returnKeyType="send"
+                  style={{
+                    flex: 1,
+                    backgroundColor: C.surface,
+                    borderRadius: 999,
+                    paddingVertical: 14,
+                    paddingHorizontal: 18,
+                    fontSize: 14,
+                    fontFamily: 'Geist_400Regular',
+                    color: C.text,
+                    shadowColor: '#0B1020',
+                    shadowOpacity: 0.06,
+                    shadowRadius: 8,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 2,
+                  }}
+                />
+                <Pressable
+                  onPress={() => send(input)}
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 23,
+                    backgroundColor: C.cta,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ArrowUp size={19} color={C.ctaText} strokeWidth={2.4} />
+                </Pressable>
+              </LinearGradient>
+            </Animated.View>
           </KeyboardAvoidingView>
         ) : (
           /* FLOW TAB */
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 20, paddingBottom: 40 + insets.bottom }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 40 + insets.bottom + extraPad }}
             showsVerticalScrollIndicator={false}
           >
             {draft ? (

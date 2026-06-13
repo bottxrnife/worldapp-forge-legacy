@@ -188,6 +188,11 @@ type AppState = {
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
 
+  // Create tab: the persistent tab bar stays until the assistant goes immersive
+  // (the user starts interacting), then it slides away for a full-screen chat.
+  assistantImmersive: boolean;
+  setAssistantImmersive: (v: boolean) => void;
+
   // session / World ID
   verified: boolean;
   verifiedSimulated: boolean;
@@ -266,6 +271,9 @@ export const useApp = create<AppState>((set, get) => ({
     SecureStore.setItemAsync(KEYS.theme, mode).catch(() => {});
     set({ themeMode: mode });
   },
+
+  assistantImmersive: false,
+  setAssistantImmersive: (assistantImmersive) => set({ assistantImmersive }),
 
   verified: false,
   verifiedSimulated: false,

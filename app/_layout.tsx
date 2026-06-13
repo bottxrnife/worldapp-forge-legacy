@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TabBar } from '../src/components/TabBar';
 import { loadPersistedState, loadThemePreference, useApp } from '../src/state/store';
 import { C } from '../src/theme';
 
@@ -47,6 +48,8 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: C.bg },
         }}
       />
+      {/* One persistent tab bar for all tab routes — never remounts on switch */}
+      <TabBar />
     </SafeAreaProvider>
   );
 }
