@@ -123,6 +123,8 @@ type AppState = {
   loyalty: Record<string, LoyaltyRecord>;
   addStamp: (ens: string, points: number) => void;
   redeemReward: (ens: string, cardSize: number) => void;
+  spendPoints: (ens: string, cost: number, rewardLabel: string) => boolean;
+
   activity: ActivityEntry[];
   recordActivity: (e: Omit<ActivityEntry, 'id' | 'ts'>) => void;
   savedEns: string[];
@@ -182,6 +184,24 @@ export const useApp = create<AppState>((set, get) => ({
     };
     persistJSON(KEYS.loyalty, loyalty);
     set({ loyalty });
+  },
+
+  spendPoints: (ens, cost, rewardLabel) => {
+    const prev = get().loyalty[ens] ?? { punches: 0, points: 0, redeemed: 0 };
+    if (prev.points < cost) return false;
+    const loyalty = {
+      ...get().loyalty,
+      [ens]: { ...prev, points: prev.points - cost },
+    };
+    persistJSON(KEYS.loyalty, loyalty);
+    set({ loyalty });
+    get().recordActivity({
+      ens,
+      title: rewardLabel,
+      kind: 'redeem',
+      points: -cost,
+    });
+    return true;
   },
 
   activity: [],

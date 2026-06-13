@@ -466,3 +466,16 @@ export const SEED_LISTINGS: DappListing[] = [
     section: 'recent',
   },
 ];
+
+export type PointsReward = { ens: string; label: string; cost: number; emoji: string };
+
+export const POINTS_REWARDS: PointsReward[] = [
+  { ens: 'burgerblock.dappdock.eth', label: '$2 off your order', cost: 800, emoji: '🏷️' },
+  { ens: 'burgerblock.dappdock.eth', label: 'Free fries', cost: 1200, emoji: '🍟' },
+  { ens: 'burgerblock.dappdock.eth', label: 'Free milkshake', cost: 2000, emoji: '🥤' },
+  { ens: 'burgerblock.dappdock.eth', label: 'Free Classic Smash Burger', cost: 4000, emoji: '🍔' },
+  { ens: 'bistro.dappdock.eth', label: 'Free truffle fries', cost: 1000, emoji: '🍟' },
+  { ens: 'bistro.dappdock.eth', label: 'Free cold brew', cost: 900, emoji: '☕️' },
+  { ens: 'bistro.dappdock.eth', label: 'Free Signature Burger', cost: 3500, emoji: '🍔' },
+];
+

@@ -14,11 +14,13 @@ export function PunchCard({
   total,
   reward,
   record,
+  onchain,
 }: {
   brand: string;
   total: number;
   reward: string;
   record: LoyaltyRecord;
+  onchain?: boolean;
 }) {
   const punches = Math.min(record.punches, total);
   const full = punches >= total;
@@ -94,6 +96,20 @@ export function PunchCard({
             {record.redeemed} redeemed
           </Txt>
         )}
+      </View>
+      {/* where the punch count lives: ENS text record when keyed, else local */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
+        <View
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: onchain ? C.successStrong : '#8C9BCB',
+          }}
+        />
+        <Txt size={11} w={600} color="#8C9BCB">
+          {onchain ? 'Stamps stored on ENS' : 'Stamps saved on device'}
+        </Txt>
       </View>
     </View>
   );

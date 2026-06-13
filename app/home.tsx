@@ -5,6 +5,7 @@ import {
   Calendar,
   Check,
   DollarSign,
+  Gift,
   MoreHorizontal,
   Sparkles,
   Users,
@@ -199,6 +200,7 @@ export default function Home() {
           <QuickTile icon={icon(Users, 15)} label="Members" onPress={() => router.push('/detail/members.dappdock.eth')} />
           <QuickTile icon={icon(Sparkles, 15)} label="Agents" onPress={() => router.push('/store?category=Agents')} />
           <QuickTile icon={icon(Calendar, 15)} label="Events" onPress={() => router.push('/store?category=Events')} />
+          <QuickTile icon={icon(Gift, 15)} label="Rewards" onPress={() => router.push('/rewards')} />
           <QuickTile icon={icon(MoreHorizontal)} label="More" onPress={() => router.replace('/store')} />
         </View>
 
