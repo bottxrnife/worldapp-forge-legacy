@@ -21,7 +21,7 @@ import { DappManifest } from '../types';
 export const hasDirectAnthropicKey = () =>
   (process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '').length > 0;
 export const hasAgentCreds = () => hasDirectAnthropicKey() || ENV.anthropicProxyUrl.length > 0;
-const MODEL = process.env.EXPO_PUBLIC_ANTHROPIC_MODEL ?? 'claude-sonnet-4-5';
+const MODEL = process.env.EXPO_PUBLIC_ANTHROPIC_MODEL ?? 'claude-sonnet-4-6';
 
 function anthropicMessagesUrl(): string {
   if (hasDirectAnthropicKey()) return 'https://api.anthropic.com/v1/messages';
@@ -298,7 +298,7 @@ export async function runAgentTurn(
 ): Promise<ApiMessage[]> {
   if (!hasAgentCreds()) {
     // Keyless fallback: template generation so the loop still works.
-    hooks.onActivity('Drafting from template (no Anthropic key or Claude Code proxy)');
+    hooks.onActivity('Drafting from template (no Claude API key or Claude Code)');
     const sim = await simulateFlow(5);
     useApp.getState().setSimulation(sim);
     const manifest = generateManifest(userText);
@@ -306,14 +306,12 @@ export async function runAgentTurn(
     manifest.trust.simulated = sim.passed;
     hooks.onDraft(manifest);
     hooks.onText(
-      'I drafted this with the built-in template engine — add EXPO_PUBLIC_ANTHROPIC_API_KEY or point EXPO_PUBLIC_ANTHROPIC_PROXY_URL at your Claude Code proxy to unlock the full design agent. Review the generated dapp below.'
+      'I drafted this with the built-in template engine — add a Claude API key or connect Claude Code to unlock the full design agent. Review the generated dapp below.'
     );
     return history;
   }
 
-  if (!hasDirectAnthropicKey()) {
-    hooks.onActivity('Using Claude Code proxy (subscription on dev machine)');
-  }
+  hooks.onActivity(hasDirectAnthropicKey() ? 'Using Claude API' : 'Using Claude Code');
 
   history.push({ role: 'user', content: userText });
 

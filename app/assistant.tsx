@@ -5,7 +5,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
-  KeyboardAvoidingView,
+  Keyboard,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -198,13 +199,46 @@ function DraftCard({ manifest, onOpen }: { manifest: DappManifest; onOpen: () =>
   );
 }
 
+/**
+ * Tracks the on-screen keyboard height. SDK 54 ships edge-to-edge on Android, so
+ * the window no longer auto-resizes for the IME and iOS never did — we lift the
+ * composer ourselves by this height. iOS uses the "will" events for a smooth
+ * ride; Android only fires the "did" events.
+ */
+function useKeyboardHeight() {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => setHeight(e.endCoordinates?.height ?? 0)
+    );
+    const hide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setHeight(0)
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return height;
+}
+
+/** Which engine is powering the design agent — shown in the header. */
+function agentSourceLabel(): string {
+  if (hasDirectAnthropicKey()) return 'Using Claude API';
+  if (hasAgentCreds()) return 'Using Claude Code';
+  return 'Template mode';
+}
+
 export default function Assistant() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+  const kbHeight = useKeyboardHeight();
   const [tab, setTab] = useState<'chat' | 'flow'>('chat');
   const [input, setInput] = useState('');
-  const [focused, setFocused] = useState(false);
+  const [composing, setComposing] = useState(false);
 
   const {
     messages,
@@ -221,7 +255,7 @@ export default function Assistant() {
   // Create stays "docked" (the persistent tab bar shows, input floats above it)
   // until the user engages — then it goes immersive: the tab bar slides away and
   // the input drops to the bottom for a full-screen chat.
-  const immersive = focused || input.length > 0 || messages.length > 0;
+  const immersive = composing || input.length > 0 || messages.length > 0;
   const dock = useRef(new Animated.Value(immersive ? 0 : 1)).current; // 1 = docked
   useEffect(() => {
     setAssistantImmersive(immersive);
@@ -276,6 +310,14 @@ export default function Assistant() {
     }
   };
 
+  const submitCompose = () => {
+    if (!input.trim()) return;
+    const text = input;
+    setComposing(false);
+    Keyboard.dismiss();
+    send(text);
+  };
+
   const showChips = messages.length === 0;
   const segStyle = (on: boolean) => ({
     flex: 1,
@@ -302,12 +344,8 @@ export default function Assistant() {
                 Create assistant
               </Txt>
               <Txt size={12} w={600} color={C.blueLink} numberOfLines={1}>
-                {AGENT_ENS} · {agentId?.verified ? 'verified on ENS' : 'human-backed'}
-                {hasDirectAnthropicKey()
-                  ? ''
-                  : hasAgentCreds()
-                    ? ' · Claude Code proxy'
-                    : ' · template mode'}
+                {AGENT_ENS} · {agentId?.verified ? 'verified on ENS' : 'human-backed'} ·{' '}
+                {agentSourceLabel()}
               </Txt>
             </View>
           </View>
@@ -334,10 +372,7 @@ export default function Assistant() {
         </View>
 
         {tab === 'chat' ? (
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <View style={{ flex: 1 }}>
             <ScrollView
               ref={scrollRef}
               style={{ flex: 1 }}
@@ -368,7 +403,9 @@ export default function Assistant() {
                     const pill = (
                       <Pressable
                         onPress={() =>
-                          chip === 'Start from scratch' ? setInput('') : send(CHIP_PROMPTS[chip])
+                          chip === 'Start from scratch'
+                            ? setComposing(true)
+                            : send(CHIP_PROMPTS[chip])
                         }
                         style={{
                           backgroundColor: i === 0 ? C.blueSoft : C.surface,
@@ -473,33 +510,29 @@ export default function Assistant() {
                   alignItems: 'center',
                 }}
               >
-                <TextInput
-                  value={input}
-                  onChangeText={setInput}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  placeholder="Describe your dapp…"
-                  placeholderTextColor={C.text3}
-                  onSubmitEditing={() => send(input)}
-                  returnKeyType="send"
+                <Pressable
+                  onPress={() => setComposing(true)}
                   style={{
                     flex: 1,
+                    minHeight: 50,
                     backgroundColor: C.surface,
                     borderRadius: 999,
                     paddingVertical: 14,
                     paddingHorizontal: 18,
-                    fontSize: 14,
-                    fontFamily: 'Geist_400Regular',
-                    color: C.text,
+                    justifyContent: 'center',
                     shadowColor: '#0B1020',
                     shadowOpacity: 0.06,
                     shadowRadius: 8,
                     shadowOffset: { width: 0, height: 2 },
                     elevation: 2,
                   }}
-                />
+                >
+                  <Txt size={14} color={input.trim() ? C.text : C.text3} numberOfLines={1}>
+                    {input.trim() || 'Describe your dapp…'}
+                  </Txt>
+                </Pressable>
                 <Pressable
-                  onPress={() => send(input)}
+                  onPress={() => (input.trim() ? send(input) : setComposing(true))}
                   style={{
                     width: 46,
                     height: 46,
@@ -513,7 +546,7 @@ export default function Assistant() {
                 </Pressable>
               </LinearGradient>
             </Animated.View>
-          </KeyboardAvoidingView>
+          </View>
         ) : (
           /* FLOW TAB */
           <ScrollView
@@ -625,6 +658,94 @@ export default function Assistant() {
           </ScrollView>
         )}
       </FadeUp>
+
+      {/* Fullscreen composer — tapping the input bar expands to this so the text
+          area sits above the keyboard and the user can type a full description. */}
+      <Modal
+        visible={composing}
+        animationType="slide"
+        transparent={false}
+        statusBarTranslucent
+        presentationStyle="fullScreen"
+        onRequestClose={() => setComposing(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top + 6 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 20,
+              paddingBottom: 8,
+            }}
+          >
+            <Pressable onPress={() => setComposing(false)} hitSlop={12}>
+              <Txt size={15} w={600} color={C.text2}>
+                Cancel
+              </Txt>
+            </Pressable>
+            <Txt size={15} w={700}>
+              Describe your dapp
+            </Txt>
+            <View style={{ width: 54 }} />
+          </View>
+
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            autoFocus
+            multiline
+            placeholder="e.g. Collect $5 USDC dues from my team on any chain, send it to team.eth, and mark members as paid."
+            placeholderTextColor={C.text3}
+            style={{
+              flex: 1,
+              fontSize: 17,
+              lineHeight: 25,
+              fontFamily: 'Geist_400Regular',
+              color: C.text,
+              paddingHorizontal: 20,
+              paddingTop: 6,
+              textAlignVertical: 'top',
+            }}
+          />
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              paddingHorizontal: 20,
+              paddingTop: 12,
+              paddingBottom: (kbHeight > 0 ? kbHeight : insets.bottom) + 12,
+              borderTopWidth: 1,
+              borderTopColor: C.divider,
+              backgroundColor: C.bg,
+            }}
+          >
+            <Txt size={12.5} color={C.text3} style={{ flex: 1 }}>
+              {input.trim().length} characters
+            </Txt>
+            <Pressable
+              onPress={submitCompose}
+              disabled={!input.trim()}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                backgroundColor: input.trim() ? C.cta : C.segBg,
+                borderRadius: 999,
+                paddingVertical: 13,
+                paddingHorizontal: 20,
+              }}
+            >
+              <Txt size={15} w={700} color={input.trim() ? C.ctaText : C.text3}>
+                Generate
+              </Txt>
+              <ArrowUp size={18} color={input.trim() ? C.ctaText : C.text3} strokeWidth={2.4} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
