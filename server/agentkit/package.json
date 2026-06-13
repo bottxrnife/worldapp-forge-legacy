@@ -1,0 +1,21 @@
+{
+  "name": "dappdock-agentkit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "World AgentKit (Track A): x402 endpoint with a human-backed free-trial, plus a human-backed agent client.",
+  "scripts": {
+    "server": "node resource-server.mjs",
+    "agent": "node agent.mjs",
+    "register": "npx @worldcoin/agentkit-cli register"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "@worldcoin/agentkit": "^0.2.0",
+    "@x402/core": "^2.15.0",
+    "@x402/evm": "^2.15.0",
+    "@x402/hono": "^2.15.0",
+    "hono": "^4.12.25",
+    "viem": "^2.52.2"
+  }
+}

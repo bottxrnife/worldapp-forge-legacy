@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { TabBar } from '../src/components/TabBar';
 import { Chip, IconTile, ListRow, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { AgentKitStatus, getAgentKitStatus, runHumanBackedTask } from '../src/services/agentkit';
 import { AgentProfile, getAgentProfile } from '../src/services/identity';
 import { getWalletSnapshot } from '../src/services/wallet';
 import { useApp } from '../src/state/store';
@@ -85,6 +86,79 @@ function AgentCard({
           />
         ))}
       </View>
+    </View>
+  );
+}
+
+/**
+ * AgentKit (Track A) card — reads the free-trial status from the World AgentKit
+ * resource server (server/agentkit) over plain HTTP and lets the user fire a
+ * human-backed agent call. The AgentKit SDK runs server-side, never in the app.
+ */
+function AgentKitCard() {
+  const [status, setStatus] = useState<AgentKitStatus | null>(null);
+  const [running, setRunning] = useState(false);
+  useEffect(() => {
+    getAgentKitStatus()
+      .then(setStatus)
+      .catch(() => {});
+  }, []);
+  const run = async () => {
+    if (running) return;
+    setRunning(true);
+    try {
+      const r = await runHumanBackedTask();
+      Alert.alert(
+        r.outcome === 'unlocked'
+          ? 'Free-trial use ✓'
+          : r.outcome === 'payment'
+            ? 'Register your agent'
+            : 'AgentKit offline',
+        r.detail
+      );
+    } finally {
+      setRunning(false);
+    }
+  };
+  return (
+    <View style={{ backgroundColor: C.inkPanel, borderRadius: 20, padding: 16, marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+          Human-backed agent · AgentKit
+        </Txt>
+        <View
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.12)',
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}
+        >
+          <Txt size={10.5} w={700} color={status?.reachable ? C.successStrong : '#9FB0DA'}>
+            {status?.reachable ? 'online' : status ? 'offline' : '…'}
+          </Txt>
+        </View>
+      </View>
+      <Txt size={12.5} color={C.white} lh={1.45} style={{ marginTop: 8, opacity: 0.92 }}>
+        {status
+          ? `${status.freeUses} free uses on ${status.networks.join(' + ')}, then ${status.price}/call. `
+          : 'Loading… '}
+        World ID proves the agent is human-backed (x402 free-trial).
+      </Txt>
+      <Pressable
+        onPress={run}
+        style={{
+          backgroundColor: 'rgba(255,255,255,0.12)',
+          borderRadius: 13,
+          paddingVertical: 11,
+          alignItems: 'center',
+          marginTop: 12,
+        }}
+      >
+        <Txt size={13.5} w={700} color={C.white}>
+          {running ? 'Calling agent…' : 'Run a human-backed task'}
+        </Txt>
+      </Pressable>
     </View>
   );
 }
@@ -365,6 +439,7 @@ export default function Profile() {
           Every agent is named under ENS (ENSIP-25/26) — its address and capabilities resolve
           on-chain, so agents are discoverable and verifiable by name.
         </Txt>
+        <AgentKitCard />
         <View style={{ gap: 8 }}>
           <AgentCard
             ens="design.agent.dappdock.eth"

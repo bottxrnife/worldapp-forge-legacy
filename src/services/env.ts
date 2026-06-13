@@ -33,6 +33,10 @@ export const ENV = {
   worldConnectUrl: process.env.EXPO_PUBLIC_WORLD_CONNECT_URL ?? 'https://world.org/verify',
   // World ID Wallet Bridge (native/mobile connect path).
   worldBridgeUrl: process.env.EXPO_PUBLIC_WORLD_BRIDGE_URL ?? 'https://bridge.worldcoin.org',
+  // World AgentKit resource server (Track A) — see server/agentkit. The app
+  // talks to it over plain HTTP (the AgentKit SDK runs server-side, not in the
+  // RN bundle). Set to your LAN IP / tunnel so a physical phone can reach it.
+  agentkitUrl: process.env.EXPO_PUBLIC_AGENTKIT_URL ?? 'http://localhost:4021',
 
   // ── LI.FI + Composer ──────────────────────────────────────────────────────
   // portal.li.fi → API key (optional: the API is open; a key only raises rate
