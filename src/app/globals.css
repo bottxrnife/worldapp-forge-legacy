@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Forge design tokens (ported from the original app's palette). */
+@theme inline {
+  --color-bg: #f5f6fa;
+  --color-surface: #ffffff;
+  --color-ink: #0b1020;
+  --color-muted: #667085;
+  --color-faint: #9aa1b2;
+  --color-blue-soft: #dce7ff;
+  --color-blue-soft-deep: #c7d8ff;
+  --color-blue-ink: #16204a;
+  --color-blue-body: #22305c;
+  --color-blue-link: #3450a1;
+  --color-cta: #000000;
+  --color-cta-text: #ffffff;
+  --color-success: #1b7a45;
+  --color-success-bg: #dff5e7;
+  --color-warn: #8a6a12;
+  --color-warn-bg: #fff4d6;
+  --color-divider: #e5e7eb;
+  --color-divider-soft: #f1f2f6;
+  --font-sans: var(--font-geist-sans);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* respect World App webview safe areas */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+* {
+  box-sizing: border-box;
+}
