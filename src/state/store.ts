@@ -23,6 +23,20 @@ const KEYS = {
   redpackets: 'dappdock.redpackets',
   contacts: 'dappdock.contacts',
   shortcuts: 'dappdock.shortcuts',
+  orders: 'dappdock.orders',
+};
+
+/** A placed order in a menu/restaurant mini-app (kept for the History tab + QR). */
+export type OrderRecord = {
+  id: string;
+  ens: string; // the dapp's ENS
+  items: Array<{ name: string; qty: number }>;
+  totalUsd: number;
+  points: number;
+  userHandle: string; // the buyer's ENS / short address (shown on the pickup QR)
+  ts: number;
+  live?: boolean;
+  explorerUrl?: string;
 };
 
 /** A customizable Home tile — an emoji shortcut to a route (action or dapp). */
@@ -158,7 +172,7 @@ export async function loadThemePreference() {
  * palette side-effect runs before first paint.
  */
 export async function loadPersistedState() {
-  const [loyalty, activity, savedEns, userListings, reviews, redPackets, contacts, shortcuts] = await Promise.all([
+  const [loyalty, activity, savedEns, userListings, reviews, redPackets, contacts, shortcuts, orders] = await Promise.all([
     loadJSON<Record<string, LoyaltyRecord>>(KEYS.loyalty),
     loadJSON<ActivityEntry[]>(KEYS.activity),
     loadJSON<string[]>(KEYS.saved),
@@ -167,6 +181,7 @@ export async function loadPersistedState() {
     loadJSON<Record<string, RedPacket>>(KEYS.redpackets),
     loadJSON<Contact[]>(KEYS.contacts),
     loadJSON<HomeShortcut[]>(KEYS.shortcuts),
+    loadJSON<OrderRecord[]>(KEYS.orders),
   ]);
   const patch: Partial<AppState> = {};
   if (loyalty) patch.loyalty = { ...LOYALTY_SEED, ...loyalty };
@@ -176,6 +191,7 @@ export async function loadPersistedState() {
   if (redPackets) patch.redPackets = redPackets;
   if (contacts) patch.contacts = contacts;
   if (shortcuts && shortcuts.length) patch.homeShortcuts = shortcuts;
+  if (orders) patch.orders = orders;
   if (userListings && userListings.length) {
     patch.userListings = userListings;
     patch.listings = [...userListings, ...SEED_LISTINGS];
@@ -224,8 +240,13 @@ type AppState = {
   loyalty: Record<string, LoyaltyRecord>;
   loyaltyOnchain: boolean; // true once a loyalty card was read from the user's ENS profile
   addStamp: (ens: string, points: number) => void;
+  addPoints: (ens: string, points: number) => void;
   redeemReward: (ens: string, cardSize: number) => void;
   spendPoints: (ens: string, cost: number, rewardLabel: string) => boolean;
+
+  // menu / restaurant orders (History tab + pickup QR)
+  orders: OrderRecord[];
+  placeOrder: (o: Omit<OrderRecord, 'id' | 'ts'>) => OrderRecord;
 
   // activity / receipts feed
   activity: ActivityEntry[];
@@ -317,6 +338,12 @@ export const useApp = create<AppState>((set, get) => ({
     persistJSON(KEYS.loyalty, loyalty);
     set({ loyalty });
   },
+  addPoints: (ens, points) => {
+    const prev = get().loyalty[ens] ?? { punches: 0, points: 0, redeemed: 0 };
+    const loyalty = { ...get().loyalty, [ens]: { ...prev, points: prev.points + points } };
+    persistJSON(KEYS.loyalty, loyalty);
+    set({ loyalty });
+  },
   redeemReward: (ens, cardSize) => {
     const prev = get().loyalty[ens] ?? { punches: 0, points: 0, redeemed: 0 };
     const loyalty = {
@@ -342,6 +369,19 @@ export const useApp = create<AppState>((set, get) => ({
       points: -cost,
     });
     return true;
+  },
+
+  orders: [],
+  placeOrder: (o) => {
+    const record: OrderRecord = {
+      id: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      ts: Date.now(),
+      ...o,
+    };
+    const orders = [record, ...get().orders].slice(0, 100);
+    persistJSON(KEYS.orders, orders);
+    set({ orders });
+    return record;
   },
 
   // activity / receipts feed

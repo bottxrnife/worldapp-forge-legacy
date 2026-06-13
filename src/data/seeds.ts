@@ -235,20 +235,22 @@ export const BURGERBLOCK_MANIFEST: DappManifest = {
   version: '1.0.0',
 };
 
-/** Restaurant ordering: build a cart in-app, pay the total via LI.FI, earn points. */
+/** Restaurant ordering: build a cart, pay the total via LI.FI, earn points (no
+ *  stamps — points-only, 100 pts per $1). Renders as a tabbed mini-app
+ *  (Order / Rewards / History) with a pickup QR — see RestaurantApp.tsx. */
 export const BISTRO_MANIFEST: DappManifest = {
   name: 'Corner Bistro — Order & Pay',
   ensName: 'bistro.dappdock.eth',
   creator: 'cornerbistro.creator.eth',
   description:
-    'Open the menu, build your order, and pay the total in USDC from any chain — the kitchen is notified instantly and every dollar earns loyalty points toward a free meal.',
+    'Open the menu, build your order, and pay the total in USDC from any chain — the kitchen is notified instantly and you earn 100 points per $1 to redeem for rewards.',
   category: 'Finance',
   secondaryCategory: 'Community',
   components: [
-    { type: 'punchCard', total: 8, reward: 'Signature Burger', pointsPerDollar: 100 },
     {
       type: 'menu',
       currency: 'USDC',
+      pointsPerDollar: 100,
       items: [
         { id: 'smash', name: 'Signature Smash Burger', priceUsd: 11, desc: 'Double patty, house sauce', tag: 'Mains' },
         { id: 'chicken', name: 'Crispy Chicken Sandwich', priceUsd: 10, desc: 'Buttermilk-fried, pickles', tag: 'Mains' },
@@ -273,8 +275,7 @@ export const BISTRO_MANIFEST: DappManifest = {
     ],
     spendingCap: '80 USDC',
     requiresConfirmation: true,
-    requiresWorldId: true,
-    worldPolicy: 'one-card-per-human',
+    requiresWorldId: false,
   },
   workflow: {
     provider: 'LI.FI Composer',
@@ -283,7 +284,7 @@ export const BISTRO_MANIFEST: DappManifest = {
       { id: 'confirm', label: 'Confirm your order', detail: 'Your cart and total, up front' },
       { id: 'source', label: 'Source the total from your wallet', detail: 'Any chain — no bridging needed by you' },
       { id: 'route', label: 'Route payment via LI.FI', detail: 'Settles to bistro.eth' },
-      { id: 'kitchen', label: 'Notify the kitchen & stamp your card', detail: 'Order in, points + stamp saved' },
+      { id: 'kitchen', label: 'Notify the kitchen & add points', detail: 'Order in, 100 pts per $1 saved' },
     ],
     simulated: true,
   },
@@ -291,7 +292,6 @@ export const BISTRO_MANIFEST: DappManifest = {
   ensTextRecords: {
     'dapp.category': 'Finance',
     'dapp.version': '1.0.0',
-    'world.policy': 'one-card-per-human',
     'lifi.flow': 'flow_bistro',
   },
   version: '1.0.0',

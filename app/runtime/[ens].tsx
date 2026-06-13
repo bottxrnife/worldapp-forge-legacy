@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Alert, Linking, Pressable, TextInput, View } from 'react-native';
 import { MenuOrder, MenuItem } from '../../src/components/MenuOrder';
 import { PunchCard } from '../../src/components/PunchCard';
+import { RestaurantApp } from '../../src/components/RestaurantApp';
 import { BackButton, Chip, PrimaryButton, Pulse, Screen, Txt } from '../../src/components/ui';
 import { authenticateForSpend } from '../../src/services/biometric';
 import { ExecutionResult, runFlow } from '../../src/services/execution';
@@ -314,6 +315,13 @@ export default function Runtime() {
         </View>
       </Screen>
     );
+  }
+
+  // Menu dapps (restaurants) render the full tabbed ordering mini-app
+  // (Order / Rewards / History + pickup QR) instead of the generic flow.
+  // Use an independent guard so `menu` keeps its type for the legacy branch below.
+  if (manifest.components.some((c) => c.type === 'menu')) {
+    return <RestaurantApp manifest={manifest} listing={listing} />;
   }
 
   return (

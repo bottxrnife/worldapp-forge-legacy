@@ -21,6 +21,8 @@ export type DappManifest = {
         type: 'menu';
         currency: string;
         items: Array<{ id: string; name: string; priceUsd: number; desc?: string; tag?: string }>;
+        /** Loyalty points earned per $1 spent (e.g. 100). Points-only — no stamps. */
+        pointsPerDollar?: number;
       }
     | { type: 'submitButton'; label: string }
   >;
