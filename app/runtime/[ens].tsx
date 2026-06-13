@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Linking, Pressable, View } from 'react-native';
+import { PunchCard } from '../../src/components/PunchCard';
 import { BackButton, Chip, PrimaryButton, Pulse, Screen, Txt } from '../../src/components/ui';
 import { ExecutionResult, runFlow } from '../../src/services/execution';
 import { verifyHuman } from '../../src/services/verification';
@@ -184,6 +185,11 @@ export default function Runtime() {
 
       {runState === 'form' && (
         <View style={{ flex: 1, marginTop: 16 }}>
+          {punch && (
+            <View style={{ marginBottom: 10 }}>
+              <PunchCard brand={manifest.name} total={punch.total} reward={punch.reward} record={record} />
+            </View>
+          )}
           <View
             style={{
               backgroundColor: C.surface,

@@ -88,6 +88,56 @@ function simpleManifest(p: {
   };
 }
 
+/** Fast-food loyalty pass: pay for a meal, collect a stamp + points; 10 stamps = free burger. */
+export const BURGERBLOCK_MANIFEST: DappManifest = {
+  name: 'Burger Block Rewards',
+  ensName: 'burgerblock.dappdock.eth',
+  creator: 'burgerblock.creator.eth',
+  description:
+    'Scan the counter QR, pay for your meal in USDC from any chain, and stamp your loyalty card — 10 stamps earns a free Classic Smash Burger, and every dollar earns points.',
+  category: 'Finance',
+  secondaryCategory: 'Community',
+  components: [
+    { type: 'punchCard', total: 10, reward: 'Classic Smash Burger', pointsPerDollar: 100 },
+    { type: 'amountInput', token: 'USDC', default: '8', locked: true },
+    { type: 'sourceChain', value: 'any' },
+    { type: 'recipient', value: 'burgerblock.eth' },
+    { type: 'memoInput', default: 'Combo #1 — smash burger meal' },
+    { type: 'submitButton', label: 'Pay $8 & collect a stamp' },
+  ],
+  outcome: 'You will pay $8 for your meal and collect one loyalty stamp.',
+  permissions: {
+    plainEnglish: [
+      'Read your wallet balance',
+      'Route one USDC payment via LI.FI',
+      'Stamp your loyalty card and add points',
+    ],
+    spendingCap: '8 USDC',
+    requiresConfirmation: true,
+    requiresWorldId: true,
+    worldPolicy: 'one-card-per-human',
+  },
+  workflow: {
+    provider: 'LI.FI Composer',
+    flowId: 'flow_burgerblock',
+    steps: [
+      { id: 'source', label: 'Source $8 USDC from your wallet', detail: 'Any chain — no bridging needed by you' },
+      { id: 'route', label: 'Route payment via LI.FI', detail: 'Best route selected automatically' },
+      { id: 'settle', label: 'Settle to burgerblock.eth', detail: 'The kitchen gets your order instantly' },
+      { id: 'stamp', label: 'Stamp your loyalty card', detail: '+1 stamp and +800 points saved to your pass' },
+    ],
+    simulated: true,
+  },
+  trust: { ensVerified: true, worldVerifiedCreator: true, simulated: true, openSource: true },
+  ensTextRecords: {
+    'dapp.category': 'Finance',
+    'dapp.version': '1.0.0',
+    'world.policy': 'one-card-per-human',
+    'lifi.flow': 'flow_burgerblock',
+  },
+  version: '1.0.0',
+};
+
 export const SEED_LISTINGS: DappListing[] = [
   {
     manifest: HACKDUES_MANIFEST,
@@ -100,6 +150,17 @@ export const SEED_LISTINGS: DappListing[] = [
     recency: 'Just now',
     featured: true,
     section: 'recent',
+  },
+  {
+    manifest: BURGERBLOCK_MANIFEST,
+    monogram: 'BB',
+    runtimeTitle: 'Burger Block Rewards',
+    oneLiner: 'Eat, stamp, earn — 10 stamps = free burger.',
+    rating: 4.9,
+    runs: 3120,
+    reviews: 486,
+    featured: true,
+    section: 'humans',
   },
   {
     manifest: simpleManifest({
