@@ -2,10 +2,11 @@
 
 /* Forge design tokens (ported from the original app's palette). */
 @theme inline {
-  --color-bg: #f5f6fa;
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
+  --color-wash: #f3f4f7;
   --color-ink: #0b1020;
-  --color-muted: #667085;
+  --color-muted: #6b7280;
   --color-faint: #9aa1b2;
   --color-blue-soft: #dce7ff;
   --color-blue-soft-deep: #c7d8ff;
