@@ -110,13 +110,18 @@ export type AgentProfile = {
  * design agent's verifiable on-chain identity (vs. a cosmetic label).
  */
 export async function getAgentProfile(name: string): Promise<AgentProfile> {
-  const [address, context, mcp, a2a] = await Promise.all([
-    resolveAddress(name),
+  const address = await resolveAddress(name);
+  // No on-chain identity → skip the (CCIP-Read) text-record lookups entirely.
+  // Avoids 3 wasted RPC round-trips per unregistered agent name on mount.
+  if (!address) {
+    return { name, address: null, context: null, endpoints: { mcp: null, a2a: null }, verified: false };
+  }
+  const [context, mcp, a2a] = await Promise.all([
     getAgentContext(name),
     getAgentEndpoint(name, 'mcp'),
     getAgentEndpoint(name, 'a2a'),
   ]);
-  return { name, address, context, endpoints: { mcp, a2a }, verified: !!address };
+  return { name, address, context, endpoints: { mcp, a2a }, verified: true };
 }
 
 export type PublishResult = {
