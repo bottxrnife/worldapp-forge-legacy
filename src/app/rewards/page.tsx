@@ -35,7 +35,7 @@ export default function RewardsPage() {
         <div className="mt-4 rounded-3xl bg-[#16204a] p-5 text-white">
           <p className="text-xs font-bold uppercase tracking-wider text-white/60">Total points</p>
           <p className="mt-1 text-4xl font-extrabold">{totalPoints.toLocaleString()}</p>
-          <p className="mt-1 text-sm text-white/70">Earned across {passes.length} app{passes.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-sm text-white/70">Earned across {passes.length} Spark{passes.length === 1 ? "" : "s"}</p>
         </div>
 
         {passes.length > 0 && (
@@ -69,7 +69,7 @@ export default function RewardsPage() {
         <h3 className="mt-6 text-lg font-extrabold">Activity</h3>
         {activity.length === 0 ? (
           <div className="mt-3 rounded-2xl bg-wash p-5 text-center text-sm text-muted">
-            Run an app and your receipts show up here.
+            Run a Spark and your receipts show up here.
           </div>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
@@ -94,7 +94,7 @@ export default function RewardsPage() {
         {passes.length === 0 && activity.length === 0 && (
           <div className="mt-3 text-center">
             <Link href="/catalog" className="inline-flex rounded-full bg-cta px-5 py-2.5 text-sm font-bold text-cta-text">
-              Browse apps →
+              Browse Sparks →
             </Link>
           </div>
         )}

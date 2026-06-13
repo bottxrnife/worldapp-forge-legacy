@@ -20,8 +20,8 @@ export default function CatalogPage() {
   return (
     <>
       <main className="mx-auto w-full max-w-md px-5 pb-28 pt-6">
-        <h1 className="text-[28px] font-extrabold tracking-tight">Apps</h1>
-        <p className="mt-1.5 text-[15px] text-muted">Human-built mini-apps, made with the agent</p>
+        <h1 className="text-[28px] font-extrabold tracking-tight">Sparks</h1>
+        <p className="mt-1.5 text-[15px] text-muted">Human-built Sparks, made with the agent</p>
 
         {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
@@ -54,9 +54,9 @@ export default function CatalogPage() {
 
         {!loading && apps.length === 0 && (
           <div className="mt-8 rounded-2xl bg-wash p-5 text-center">
-            <p className="text-sm text-muted">No apps yet. Create the first one.</p>
+            <p className="text-sm text-muted">No Sparks yet. Create the first one.</p>
             <Link href="/create" className="mt-3 inline-flex rounded-full bg-cta px-5 py-2.5 text-sm font-bold text-cta-text">
-              Create an app →
+              Create a Spark →
             </Link>
           </div>
         )}

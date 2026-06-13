@@ -21,7 +21,7 @@ const PROFILE = "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21a7 7 0 0 1 14 0";
 
 const SIDE = [
   { href: "/", label: "Home", d: HOME, match: (p: string) => p === "/" },
-  { href: "/catalog", label: "Apps", d: APPS, match: (p: string) => p.startsWith("/catalog") || p.startsWith("/app") },
+  { href: "/catalog", label: "Sparks", d: APPS, match: (p: string) => p.startsWith("/catalog") || p.startsWith("/app") },
 ];
 const SIDE2 = [
   { href: "/rewards", label: "Rewards", d: REWARDS, match: (p: string) => p.startsWith("/rewards") },

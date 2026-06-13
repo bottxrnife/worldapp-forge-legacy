@@ -60,8 +60,8 @@ export default function CreatePage() {
   return (
     <>
       <main className="mx-auto w-full max-w-md px-5 pt-6" style={{ paddingBottom: NAV_CLEARANCE + 84 }}>
-        <h1 className="text-[28px] font-extrabold tracking-tight">Create</h1>
-        <p className="mt-1.5 text-[15px] text-muted">Describe an app — the agent builds it.</p>
+        <h1 className="text-[28px] font-extrabold tracking-tight">Create a Spark</h1>
+        <p className="mt-1.5 text-[15px] text-muted">Describe it — the agent builds it.</p>
 
         {messages.length === 0 && (
           <div className="mt-4 flex flex-col gap-2">
@@ -128,7 +128,7 @@ export default function CreatePage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send(input)}
-            placeholder="Describe your app…"
+            placeholder="Describe your Spark…"
             className="flex-1 bg-transparent px-4 py-2.5 text-sm outline-none"
           />
           <button onClick={() => send(input)} disabled={busy} className="h-10 w-10 rounded-full bg-cta text-lg text-cta-text disabled:opacity-50">

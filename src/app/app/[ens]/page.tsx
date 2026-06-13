@@ -30,13 +30,13 @@ export default function AppRun() {
         <Button href="/catalog" variant="soft">
           ← Back
         </Button>
-        <h1 className="truncate text-xl font-extrabold">{manifest?.name ?? "App"}</h1>
+        <h1 className="truncate text-xl font-extrabold">{manifest?.name ?? "Spark"}</h1>
       </header>
 
       {status === "loading" && <Card><p className="text-sm text-muted">Loading…</p></Card>}
       {status === "notfound" && (
         <Card>
-          <p className="text-sm text-muted">App not found. It may not be published yet.</p>
+          <p className="text-sm text-muted">Spark not found. It may not be published yet.</p>
         </Card>
       )}
       {status === "ok" && manifest && (
