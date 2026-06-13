@@ -2,7 +2,7 @@
 
 A mobile dapp app-store superapp: discover, run, and **create** onchain mini-apps from one place. Describe an idea → the built-in LLM agent designs a mini-dapp (UI + LI.FI workflow + ENS identity + World ID access rule) → you review permissions and publish → anyone runs it in one tap.
 
-Built with **Expo SDK 54** (React Native, expo-router), runs in **Expo Go from the Play Store / App Store**. Design spec and prototype live in `design_handoff_dappdock/`.
+Built with **Expo SDK 54** (React Native, expo-router), runs in **Expo Go from the Play Store / App Store**.
 
 > **Why SDK 54?** Play Store / App Store Expo Go does **not** ship SDK 56 yet ([Expo changelog](https://expo.dev/changelog/sdk-56)). This project targets SDK 54 so it loads in the store version of Expo Go. If you need SDK 56, install Expo Go from [expo.dev/go](https://expo.dev/go) (Android direct install) or use a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 

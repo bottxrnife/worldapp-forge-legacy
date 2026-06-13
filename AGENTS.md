@@ -24,7 +24,7 @@ When you change architecture, add screens, wire integrations, fix bugs, or alter
 
 **On-chain by design:** the loyalty **punch count + points are read from ENS** (the `dappdock.loyalty` ENSIP-5 text record on the user's primary name) — a credential stored in ENS, not just on-device. See §6b.
 
-**Design source of truth:** `design_handoff_dappdock/` — `README.md` (pixel spec), `BUILD_GUIDE.md` (architecture), `dapp-manifest.example.json` (manifest schema), `DappDock.dc.html` + `support.js` (interactive prototype). Home ships **Variant A** (Classic hub) only; B/C exist in the prototype but were not implemented.
+**Home variant:** ships **Variant A** (Classic hub) only; B/C from the original prototype were not implemented. (The `design_handoff_dappdock/` spec folder was removed once the app was built — it lives in git history if needed.)
 
 **Product constraint:** Published dapps are **schema-driven manifests**, not arbitrary user code. The runtime renders `components[]`, `permissions`, and `workflow` from JSON. This is intentional (security + reviewability).
 
@@ -160,7 +160,6 @@ dapp-dock/
 ├── __tests__/                    # Jest unit tests (loyalty, manifest, links, onchain, store, composer)
 ├── .maestro/                     # Maestro e2e flows (8 journeys) + README
 ├── jest.config.js / jest.setup.js / babel.config.js  # test harness (jest-expo)
-├── design_handoff_dappdock/      # Original design spec (DO NOT DELETE)
 ├── .env.example                  # Credential template
 ├── app.json                      # Expo config
 ├── package.json
@@ -295,7 +294,7 @@ The agent **must not** get tools for spending or publishing. Boundaries are prod
 
 ## 8. Manifest schema (runtime contract)
 
-Canonical example: `design_handoff_dappdock/dapp-manifest.example.json`.
+Canonical example: the seeded `HACKDUES_MANIFEST` in `src/data/seeds.ts`.
 
 **Component types:** `amountInput`, `sourceChain`, `recipient`, `memoInput`, `punchCard`, `menu`, `submitButton`.
 
@@ -425,7 +424,6 @@ maestro test .maestro/                                # optional, needs a runnin
 - Use `--legacy-peer-deps` if npm peer conflicts on install.
 
 **Do not:**
-- Delete or overwrite `design_handoff_dappdock/`.
 - Commit `.env`.
 - Use `router.replace()` / `router.push()` during render — use `<Redirect>` or `useEffect`.
 
@@ -435,6 +433,7 @@ maestro test .maestro/                                # optional, needs a runnin
 
 | Date | Author | Change |
 |---|---|---|
+| 2026-06-13 | Build agent | **Removed `design_handoff_dappdock/`.** Deleted the original design-spec/prototype folder (pixel spec, `BUILD_GUIDE.md`, prototype HTML/JS, manifest example) now that the app is built — it remains in git history if ever needed. No code referenced it; updated the AGENTS source-of-truth note, repo map, §8 canonical example (→ `HACKDUES_MANIFEST` in `seeds.ts`) and the do-not-delete rule, plus the README. Cleared `.DS_Store` cruft. |
 | 2026-06-13 | Build agent | **UX round 2: smooth theme, customizable Home, Alipay-scan, restaurant app, pinned chrome.** (1) **Theme crossfade** — `ThemeFade` overlay fades the previous bg on light/dark switch (no snap). (2) **Customizable Home** — `homeShortcuts` (persisted) replaces the fixed 8 tiles; "Customize" edit mode (✕ / ＋ Add sheet) adds any action or store dapp. (3) **Scan = any QR** — `routeForPayload` now routes raw wallet addresses & non-dapp ENS → Pay, `dappdock://pay\|checkin/...` → Pay/run, dapp ENS → its page. (4) **Corner Bistro restaurant app** — `RestaurantApp` (Order/Rewards/History + pickup QR), **points-only** (100 pts/$1, `menu.pointsPerDollar` + `addPoints`), persisted `orders`. (5) **Pinned chrome** — detail header (back/details/share/heart) + Run button are now sticky; the body scrolls between them. (6) **Back to app** — finishing a run returns to the dapp's detail, not Home. `tsc` + Jest 53/53 + iOS bundle clean. |
 | 2026-06-13 | Build agent | **UX polish: persistent tab bar, docked Create, per-dapp personality.** (1) **No more tab-flash** — the floating bar was remounting per screen; now there's **one `<TabBar/>` in the root layout** (`usePathname`-driven, animated in/out), so switching tabs never unmounts it. (2) **Create is docked** — entering Create keeps the tab bar (input floats above it); once the user focuses/types (or a conversation exists) the assistant goes **immersive** (`assistantImmersive` flag → bar slides away, input drops to the bottom for full-screen chat). (3) **Per-dapp identity** — new `src/dappStyle.ts` (deterministic accent hashed from ENS + hand-picked/category emoji) + `DappAvatar`; replaced the uniform monogram tiles everywhere (store, home, search, profile, detail, preview, assistant draft). `tsc` + Jest 50/50 + iOS bundle clean. README refreshed. |
 | 2026-06-13 | Build agent | **World AgentKit (Track A) — real integration + both servers running.** Added `server/agentkit/` (isolated Node, own `package.json`/`node_modules`): a Hono **x402 resource server** guarded by `@worldcoin/agentkit` `createAgentkitHooks({ mode: { type: 'free-trial', uses: 3 } })` (`resource-server.mjs`) + a human-backed agent client via `createAgentkitClient().fetch()` (`agent.mjs`). Verified live: `/status` serves the free-trial config, `GET /agent/premium` returns **402** until the agent is AgentBook-registered (then 3 free uses), the World ID verifier enforces one-per-human. The AgentKit SDK is **never bundled** into the Expo app (confirmed via bundle grep) — the app reads the server over plain HTTP (`src/services/agentkit.ts` + `EXPO_PUBLIC_AGENTKIT_URL`) and Profile shows a "Human-backed agent · AgentKit" card with a "Run a human-backed task" action. Started both Node services (`worldid-verify.mjs` :8788, `agentkit` :4021). `tsc` + Jest 50/50 + iOS bundle clean. Remaining manual step for the live trial: `npx @worldcoin/agentkit-cli register <agent-address>` (World App). |
