@@ -68,6 +68,7 @@ export function MenuOrder({
                   </View>
                   {qty === 0 ? (
                     <Pressable
+                      testID={`menu-add-${it.id}`}
                       onPress={() => onAdd(it.id)}
                       style={{
                         backgroundColor: C.blueSoft,
@@ -82,7 +83,7 @@ export function MenuOrder({
                     </Pressable>
                   ) : (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <Pressable onPress={() => onRemove(it.id)} hitSlop={6}>
+                      <Pressable testID={`menu-dec-${it.id}`} onPress={() => onRemove(it.id)} hitSlop={6}>
                         <View
                           style={{
                             width: 28,
@@ -99,7 +100,7 @@ export function MenuOrder({
                       <Txt size={15} w={800} style={{ minWidth: 16, textAlign: 'center' }}>
                         {qty}
                       </Txt>
-                      <Pressable onPress={() => onAdd(it.id)} hitSlop={6}>
+                      <Pressable testID={`menu-inc-${it.id}`} onPress={() => onAdd(it.id)} hitSlop={6}>
                         <View
                           style={{
                             width: 28,

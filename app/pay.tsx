@@ -165,6 +165,7 @@ export default function Pay() {
       {/* pay form */}
       <View style={{ backgroundColor: C.surface, borderRadius: 22, padding: 18, marginTop: 14, gap: 10 }}>
         <TextInput
+          testID="pay-recipient"
           value={to}
           onChangeText={(t) => {
             setTo(t);
@@ -193,6 +194,7 @@ export default function Pay() {
           </View>
         ) : null}
         <TextInput
+          testID="pay-amount"
           value={amount}
           onChangeText={setAmount}
           placeholder="Amount in USDC"
@@ -201,6 +203,7 @@ export default function Pay() {
           style={inputStyle}
         />
         <PrimaryButton
+          testID="pay-send"
           label={sendLabel}
           onPress={doSend}
           leading={<ArrowUpRight size={17} color={C.ctaText} strokeWidth={2.4} />}

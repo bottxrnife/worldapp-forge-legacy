@@ -116,6 +116,7 @@ export default function NewRedPacket() {
             Total amount (USDC)
           </Txt>
           <TextInput
+            testID="redpacket-amount"
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
@@ -129,6 +130,7 @@ export default function NewRedPacket() {
             Number of packets
           </Txt>
           <TextInput
+            testID="redpacket-count"
             value={count}
             onChangeText={setCount}
             placeholder="5"
@@ -154,6 +156,7 @@ export default function NewRedPacket() {
       <SectionHeader title="Split" size={17} />
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <SplitOption
+          testID="redpacket-split-equal"
           active={split === 'equal'}
           icon={<Users size={18} color={split === 'equal' ? C.ctaText : C.text2} strokeWidth={2.2} />}
           title="Split evenly"
@@ -161,6 +164,7 @@ export default function NewRedPacket() {
           onPress={() => setSplit('equal')}
         />
         <SplitOption
+          testID="redpacket-split-lucky"
           active={split === 'lucky'}
           icon={<Dices size={18} color={split === 'lucky' ? C.ctaText : C.text2} strokeWidth={2.2} />}
           title="Lucky (random)"
@@ -190,6 +194,7 @@ export default function NewRedPacket() {
       ) : null}
 
       <PrimaryButton
+        testID="redpacket-create"
         label={busy ? 'Wrapping…' : 'Create packet'}
         onPress={create}
         leading={<Gift size={17} color={C.ctaText} strokeWidth={2.4} />}
@@ -208,15 +213,18 @@ function SplitOption({
   title,
   sub,
   onPress,
+  testID,
 }: {
   active: boolean;
   icon: React.ReactNode;
   title: string;
   sub: string;
   onPress: () => void;
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       style={{
         flex: 1,

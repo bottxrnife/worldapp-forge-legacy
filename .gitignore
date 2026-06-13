@@ -43,9 +43,11 @@ yarn-error.*
 /ios
 /android
 
-# local snapshots & tooling (not shipped)
+# local commit snapshots, drip tooling, and build scripts
+commits/
+scripts/
 
-# tests & e2e (local QA only)
+# tests & e2e (local QA only — not required to run the app)
 __tests__/
 .maestro/
 jest.config.js

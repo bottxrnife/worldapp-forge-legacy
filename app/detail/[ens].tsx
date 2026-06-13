@@ -155,6 +155,7 @@ export default function Detail() {
             </Txt>
           </Pressable>
           <Pressable
+            testID="detail-share"
             onPress={() => setShowShare((s) => !s)}
             hitSlop={8}
             style={{
@@ -169,6 +170,7 @@ export default function Detail() {
             <Share2 size={17} color={showShare ? C.blueLink : C.text2} strokeWidth={2.2} />
           </Pressable>
           <Pressable
+            testID="detail-save"
             onPress={() => toggleSave(m.ensName)}
             hitSlop={8}
             style={{
@@ -455,6 +457,7 @@ export default function Detail() {
       </View>
 
       <PrimaryButton
+        testID="detail-run"
         label="Run dapp"
         onPress={() => router.push(`/runtime/${m.ensName}`)}
         style={{ marginTop: 16 }}

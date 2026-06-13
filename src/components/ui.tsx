@@ -217,10 +217,19 @@ export function IconTile({
   );
 }
 
-export function SearchPill({ placeholder, onPress }: { placeholder: string; onPress?: () => void }) {
+export function SearchPill({
+  placeholder,
+  onPress,
+  testID,
+}: {
+  placeholder: string;
+  onPress?: () => void;
+  testID?: string;
+}) {
   return (
     <Pressable
       onPress={onPress}
+      testID={testID}
       style={{
         backgroundColor: C.surface,
         borderRadius: 999,
@@ -262,15 +271,18 @@ export function PrimaryButton({
   onPress,
   style,
   leading,
+  testID,
 }: {
   label: string;
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
   leading?: React.ReactNode;
+  testID?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      testID={testID}
       style={[
         {
           backgroundColor: C.cta,

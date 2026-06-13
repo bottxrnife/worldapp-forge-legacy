@@ -387,6 +387,7 @@ export default function Runtime() {
           </View>
 
           <PrimaryButton
+            testID="runtime-pay"
             label={
               paying
                 ? 'Confirming…'
@@ -461,6 +462,7 @@ export default function Runtime() {
 
           <View style={{ flex: 1 }} />
           <PrimaryButton
+            testID="runtime-submit"
             label={
               paying
                 ? 'Checking World ID…'

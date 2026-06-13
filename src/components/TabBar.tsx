@@ -42,13 +42,13 @@ export function TabBar({ active }: { active: Tab }) {
             elevation: 8,
           }}
         >
-          <Pressable onPress={() => go('home')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
+          <Pressable testID="tab-home" onPress={() => go('home')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
             <House size={20} color={color('home')} strokeWidth={2.4} />
             <Txt size={10.5} w={700} color={color('home')}>
               Home
             </Txt>
           </Pressable>
-          <Pressable onPress={() => go('store')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
+          <Pressable testID="tab-store" onPress={() => go('store')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
             <Store size={20} color={color('store')} strokeWidth={2.4} />
             <Txt size={10.5} w={700} color={color('store')}>
               Store
@@ -56,6 +56,7 @@ export function TabBar({ active }: { active: Tab }) {
           </Pressable>
           {/* Scan — the center action: QR codes in the real world launch dapps */}
           <Pressable
+            testID="tab-scan"
             onPress={() => router.push('/scan')}
             style={{ alignItems: 'center', width: 52, marginTop: -26 }}
           >
@@ -81,6 +82,7 @@ export function TabBar({ active }: { active: Tab }) {
             </Txt>
           </Pressable>
           <Pressable
+            testID="tab-create"
             onPress={() => router.push('/assistant')}
             style={{ alignItems: 'center', gap: 3, width: 52 }}
           >
@@ -89,7 +91,7 @@ export function TabBar({ active }: { active: Tab }) {
               Create
             </Txt>
           </Pressable>
-          <Pressable onPress={() => go('profile')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
+          <Pressable testID="tab-profile" onPress={() => go('profile')} style={{ alignItems: 'center', gap: 3, width: 52 }}>
             <User size={20} color={color('profile')} strokeWidth={2.4} />
             <Txt size={10.5} w={700} color={color('profile')}>
               Profile

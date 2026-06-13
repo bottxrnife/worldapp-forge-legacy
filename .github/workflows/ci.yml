@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: Typecheck + bundle (+ unit tests if present)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # react-dom peer conflict on some transitive deps → legacy peer deps (per AGENTS.md).
+      - name: Install
+        run: npm install --legacy-peer-deps
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Bundle (Metro) smoke test
+        run: npx expo export --platform ios --output-dir /tmp/dd-ci
+
+      # The Jest suite + Maestro flows are local-only (gitignored). Run the unit
+      # tests only when they're actually checked out, self-installing the test deps
+      # so this stays green for the shipped tree.
+      - name: Unit tests (if present)
+        run: |
+          if [ -d "__tests__" ] && [ -f "jest.config.js" ]; then
+            npm install --no-save --legacy-peer-deps \
+              jest-expo@~54.0.0 jest@^29 @testing-library/react-native@^12 \
+              react-test-renderer@19.1.0 @types/jest@^29
+            npx jest --ci
+          else
+            echo "No committed unit tests (local-only) — skipping."
+          fi

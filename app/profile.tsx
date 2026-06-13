@@ -275,6 +275,7 @@ export default function Profile() {
                 return (
                   <Pressable
                     key={mode}
+                    testID={`theme-${mode}`}
                     onPress={() => setThemeMode(mode)}
                     style={{
                       flexDirection: 'row',

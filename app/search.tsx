@@ -39,6 +39,7 @@ export default function SearchScreen() {
           >
             <Search size={17} color={C.text3} strokeWidth={2.4} />
             <TextInput
+              testID="search-input"
               value={query}
               onChangeText={setQuery}
               placeholder="Search dapps…"

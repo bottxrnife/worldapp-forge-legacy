@@ -179,6 +179,7 @@ export default function RedPacketView() {
       {/* claim CTA */}
       {!allOpened ? (
         <PrimaryButton
+          testID="redpacket-open"
           label={claiming ? 'Verifying you’re human…' : 'Open your packet 🧧'}
           onPress={claim}
           leading={<Gift size={17} color={C.ctaText} strokeWidth={2.4} />}
@@ -203,7 +204,7 @@ export default function RedPacketView() {
         <View style={{ marginTop: 12 }}>
           <QR value={link} size={allOpened ? 140 : 184} />
         </View>
-        <Pressable onPress={copyLink} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 }}>
+        <Pressable testID="redpacket-copy" onPress={copyLink} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 }}>
           <Txt size={12.5} w={600} color={C.blueLink}>
             Copy link
           </Txt>

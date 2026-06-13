@@ -149,7 +149,7 @@ export default function Home() {
         </View>
 
         <View style={{ marginTop: 16 }}>
-          <SearchPill placeholder="Search dapps or ask for one…" onPress={() => router.push('/search')} />
+          <SearchPill testID="home-search" placeholder="Search dapps or ask for one…" onPress={() => router.push('/search')} />
         </View>
 
         {/* hero card */}
