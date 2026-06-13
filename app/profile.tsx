@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { TabBar } from '../src/components/TabBar';
 import { Chip, IconTile, ListRow, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { AgentProfile, getAgentProfile } from '../src/services/identity';
 import { getWalletSnapshot } from '../src/services/wallet';
 import { useApp } from '../src/state/store';
 import { C } from '../src/theme';
@@ -18,6 +19,16 @@ function AgentCard({
   status: 'Active' | 'Paused';
   chips: Array<{ label: string; danger?: boolean }>;
 }) {
+  // ENSIP-25/26: resolve the agent's on-chain identity (address + agent-context)
+  // live via the Universal Resolver — agents are discoverable & verifiable by ENS.
+  const [id, setId] = useState<AgentProfile | null>(null);
+  useEffect(() => {
+    getAgentProfile(ens)
+      .then(setId)
+      .catch(() => {});
+  }, []);
+  const short = id?.address ? `${id.address.slice(0, 6)}…${id.address.slice(-4)}` : null;
+
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: 20, padding: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -34,11 +45,16 @@ function AgentCard({
           <Sparkles size={15} color={C.white} strokeWidth={2.2} />
         </View>
         <View style={{ flex: 1 }}>
-          <Txt size={14.5} w={700}>
+          <Txt size={14.5} w={700} numberOfLines={1}>
             {ens}
           </Txt>
-          <Txt size={12} color={C.text2} style={{ marginTop: 1 }}>
-            Human-backed by William
+          <Txt
+            size={12}
+            color={id?.verified ? C.success : C.text2}
+            style={{ marginTop: 1 }}
+            numberOfLines={1}
+          >
+            {id?.verified ? `✓ ENS verified · ${short}` : 'Human-backed · ENS identity'}
           </Txt>
         </View>
         <Chip
@@ -50,6 +66,11 @@ function AgentCard({
           py={4}
         />
       </View>
+      {id?.context ? (
+        <Txt size={11.5} color={C.text2} lh={1.4} style={{ marginTop: 9 }} numberOfLines={2}>
+          {id.context}
+        </Txt>
+      ) : null}
       <View style={{ flexDirection: 'row', gap: 5, marginTop: 11, flexWrap: 'wrap' }}>
         {chips.map((c) => (
           <Chip
@@ -340,6 +361,10 @@ export default function Profile() {
         </View>
 
         <SectionHeader title="Agent fleet" size={17} />
+        <Txt size={12.5} color={C.text2} lh={1.45} style={{ marginTop: -4, marginBottom: 10 }}>
+          Every agent is named under ENS (ENSIP-25/26) — its address and capabilities resolve
+          on-chain, so agents are discoverable and verifiable by name.
+        </Txt>
         <View style={{ gap: 8 }}>
           <AgentCard
             ens="design.agent.dappdock.eth"
