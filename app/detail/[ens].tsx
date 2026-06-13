@@ -1,22 +1,18 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Heart, Share2, Star } from 'lucide-react-native';
+import { Heart, Info, Share2, Star } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QR } from '../../src/components/QR';
-import { BackButton, Chip, DappAvatar, PrimaryButton, Screen, Txt } from '../../src/components/ui';
+import { BackButton, Chip, DappAvatar, Overline, PrimaryButton, Screen, Txt } from '../../src/components/ui';
 import { shareLink } from '../../src/services/links';
 import { verifyHuman } from '../../src/services/verification';
 import { findListing, hasListing, useApp } from '../../src/state/store';
 import { C } from '../../src/theme';
 
 function MicroLabel({ text, color = C.text3 }: { text: string; color?: string }) {
-  return (
-    <Txt size={11} w={700} color={color} ls={0.05} style={{ textTransform: 'uppercase' }}>
-      {text}
-    </Txt>
-  );
+  return <Overline color={color}>{text}</Overline>;
 }
 
 /** Tappable 1–5 star selector / read-only star row. */
@@ -162,10 +158,20 @@ export default function Detail() {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <BackButton onPress={() => (router.canGoBack() ? router.back() : router.replace('/store'))} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Pressable onPress={showTechnical}>
-            <Txt size={13} w={600} color={C.text2}>
-              Details
-            </Txt>
+          <Pressable
+            testID="detail-info"
+            onPress={showTechnical}
+            hitSlop={8}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: C.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Info size={17} color={C.text2} strokeWidth={2.2} />
           </Pressable>
           <Pressable
             testID="detail-share"

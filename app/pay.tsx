@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowUpRight, Check } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
-import { BackButton, Chip, IconTile, PrimaryButton, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { BackButton, Chip, IconTile, Overline, PrimaryButton, Screen, SectionHeader, Txt } from '../src/components/ui';
 import { authenticateForSpend } from '../src/services/biometric';
 import { resolveAddress } from '../src/services/identity';
 import { sendUsdc } from '../src/services/wallet';
@@ -151,13 +151,13 @@ export default function Pay() {
 
       {/* dark summary panel */}
       <View style={{ backgroundColor: C.inkPanel, borderRadius: 24, padding: 20, marginTop: 16 }}>
-        <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+        <Overline color={C.onInkLabel} ls={0.06}>
           Pay by ENS
-        </Txt>
+        </Overline>
         <Txt size={22} w={800} color={C.white} style={{ marginTop: 4 }} lh={1.3} numberOfLines={2}>
           {to.trim() ? `Paying ${to.trim()}` : 'Who are you paying?'}
         </Txt>
-        <Txt size={12.5} color="#B8C6F2" lh={1.45} style={{ marginTop: 6 }}>
+        <Txt size={12.5} color={C.onInkLabel} lh={1.45} style={{ marginTop: 6 }}>
           Pay anyone by their ENS name — no addresses, no chains. Routed in USDC.
         </Txt>
       </View>

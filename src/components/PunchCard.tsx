@@ -3,7 +3,7 @@ import { Animated, View } from 'react-native';
 import { dappEmoji } from '../dappStyle';
 import { LoyaltyRecord } from '../state/store';
 import { C } from '../theme';
-import { Pulse, Txt } from './ui';
+import { Overline, Pulse, Txt } from './ui';
 
 /** A single stamp dot. The most-recently-earned stamp "lands" with a spring pop. */
 function Stamp({
@@ -37,7 +37,7 @@ function Stamp({
         transform: [{ scale: v }],
       }}
     >
-      <Txt size={filled ? 17 : 12.5} w={700} color={filled ? C.white : '#8C9BCB'}>
+      <Txt size={filled ? 17 : 12.5} w={700} color={filled ? C.white : C.onInkFaint}>
         {filled ? emoji : label}
       </Txt>
     </Animated.View>
@@ -84,16 +84,16 @@ export function PunchCard({
     <View style={{ backgroundColor: C.inkPanel, borderRadius: 22, padding: 18 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Txt size={11} w={700} color="#B8C6F2" ls={0.06} numberOfLines={1} style={{ textTransform: 'uppercase' }}>
+          <Overline color={C.onInkLabel} ls={0.06} numberOfLines={1}>
             {brand}
-          </Txt>
+          </Overline>
           <Txt size={16} w={800} color={C.white} style={{ marginTop: 3 }}>
             {punches} of {total} stamps
           </Txt>
         </View>
         <View
           style={{
-            backgroundColor: 'rgba(255,255,255,0.12)',
+            backgroundColor: C.onInkChip,
             borderRadius: 999,
             paddingHorizontal: 12,
             paddingVertical: 6,
@@ -123,15 +123,15 @@ export function PunchCard({
         })}
       </View>
 
-      <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 16 }} />
+      <View style={{ height: 1, backgroundColor: C.onInkHair, marginTop: 16 }} />
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-        <Txt size={12.5} color="#B8C6F2" lh={1.4} style={{ flex: 1, minWidth: 0 }}>
+        <Txt size={12.5} color={C.onInkLabel} lh={1.4} style={{ flex: 1, minWidth: 0 }}>
           {full
             ? `Card full — your free ${reward} is ready 🎉`
             : `${remaining} more ${remaining === 1 ? 'visit' : 'visits'} until a free ${reward}`}
         </Txt>
         {record.redeemed > 0 && (
-          <Txt size={11.5} w={600} color="#8C9BCB" style={{ marginLeft: 10 }}>
+          <Txt size={11.5} w={600} color={C.onInkFaint} style={{ marginLeft: 10 }}>
             {record.redeemed} redeemed
           </Txt>
         )}
@@ -143,10 +143,10 @@ export function PunchCard({
             width: 6,
             height: 6,
             borderRadius: 3,
-            backgroundColor: onchain ? C.successStrong : '#8C9BCB',
+            backgroundColor: onchain ? C.successStrong : C.onInkFaint,
           }}
         />
-        <Txt size={11} w={600} color="#8C9BCB">
+        <Txt size={11} w={600} color={C.onInkFaint}>
           {onchain ? 'Synced from your ENS profile' : 'Saved on device'}
         </Txt>
       </View>

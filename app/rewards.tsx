@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ChevronRight, Sparkles } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { BackButton, Chip, CountUp, DappAvatar, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { BackButton, Chip, CountUp, DappAvatar, Overline, Screen, SectionHeader, Txt } from '../src/components/ui';
 import { POINTS_REWARDS, PointsReward } from '../src/data/seeds';
 import { activePasses, tierFor, totalPoints } from '../src/services/loyalty';
 import { useApp } from '../src/state/store';
@@ -23,8 +23,6 @@ export default function Rewards() {
 
   const listingFor = (ens: string) => listings.find((l) => l.manifest.ensName === ens);
   const nameFor = (ens: string) => listingFor(ens)?.manifest.name ?? ens;
-  const monoFor = (ens: string) =>
-    listingFor(ens)?.monogram ?? ens.slice(0, 2).toUpperCase();
 
   const redeem = (r: PointsReward) => {
     const have = loyalty[r.ens]?.points ?? 0;
@@ -64,9 +62,9 @@ export default function Rewards() {
       <View style={{ backgroundColor: C.inkPanel, borderRadius: 24, padding: 20, marginTop: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View>
-            <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+            <Overline color={C.onInkLabel} ls={0.06}>
               Total points
-            </Txt>
+            </Overline>
             <CountUp
               value={total}
               format={(n) => Math.round(n).toLocaleString()}
@@ -94,10 +92,10 @@ export default function Rewards() {
           </View>
         </View>
         {/* progress to next tier */}
-        <View style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)', marginTop: 16, overflow: 'hidden' }}>
+        <View style={{ height: 8, borderRadius: 4, backgroundColor: C.onInkTrack, marginTop: 16, overflow: 'hidden' }}>
           <View style={{ width: `${Math.round(progress * 100)}%`, height: 8, backgroundColor: C.accent }} />
         </View>
-        <Txt size={12} color="#B8C6F2" style={{ marginTop: 8 }}>
+        <Txt size={12} color={C.onInkLabel} style={{ marginTop: 8 }}>
           {next ? `${toNext.toLocaleString()} points to ${next.name}` : 'Top tier reached 🎉'}
         </Txt>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
@@ -106,10 +104,10 @@ export default function Rewards() {
               width: 6,
               height: 6,
               borderRadius: 3,
-              backgroundColor: loyaltyOnchain ? C.successStrong : '#8C9BCB',
+              backgroundColor: loyaltyOnchain ? C.successStrong : C.onInkFaint,
             }}
           />
-          <Txt size={11} w={600} color="#8C9BCB">
+          <Txt size={11} w={600} color={C.onInkFaint}>
             {loyaltyOnchain ? 'Synced from your ENS profile' : 'Saved on device · set a dappdock.loyalty ENS record to sync'}
           </Txt>
         </View>

@@ -4,7 +4,7 @@ import { ArrowUpRight, Copy, KeyRound } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
 import { QR } from '../src/components/QR';
-import { BackButton, Chip, CountUp, PrimaryButton, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { BackButton, Chip, CountUp, Overline, PrimaryButton, Screen, SectionHeader, Txt } from '../src/components/ui';
 import { authenticateForSpend } from '../src/services/biometric';
 import { exportPrivateKey, getWalletSnapshot, sendUsdc } from '../src/services/wallet';
 import { useApp } from '../src/state/store';
@@ -113,9 +113,9 @@ export default function WalletScreen() {
 
       {/* balance + per-chain */}
       <View style={{ backgroundColor: C.inkPanel, borderRadius: 24, padding: 20, marginTop: 16 }}>
-        <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+        <Overline color={C.onInkLabel} ls={0.06}>
           Total USDC
-        </Txt>
+        </Overline>
         <CountUp
           value={wallet?.totalUsdc ?? 0}
           prefix="$"

@@ -1,7 +1,7 @@
 import { Redirect, useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { BackButton, DappAvatar, PrimaryButton, Screen, Txt } from '../src/components/ui';
+import { BackButton, DappAvatar, Overline, PrimaryButton, Screen, Txt } from '../src/components/ui';
 import { useApp } from '../src/state/store';
 import { C } from '../src/theme';
 
@@ -57,12 +57,12 @@ export default function Preview() {
       {/* live preview frame */}
       <View style={{ backgroundColor: C.blueSoft, borderRadius: 28, padding: 18, marginTop: 16 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 11 }}>
-          <Txt size={10.5} w={700} color={C.blueMeta} ls={0.08} style={{ textTransform: 'uppercase' }}>
+          <Overline size={10.5} color={C.blueMeta} ls={0.08}>
             Live preview
-          </Txt>
-          <Txt size={10.5} w={700} color={C.blueMeta} ls={0.08} style={{ textTransform: 'uppercase' }}>
+          </Overline>
+          <Overline size={10.5} color={C.blueMeta} ls={0.08}>
             interactive
-          </Txt>
+          </Overline>
         </View>
         <View style={{ backgroundColor: C.surface, borderRadius: 20, padding: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -132,9 +132,7 @@ export default function Preview() {
               gap: 8,
             }}
           >
-            <Txt size={11} w={700} color={C.text3} ls={0.05} style={{ textTransform: 'uppercase' }}>
-              {label}
-            </Txt>
+            <Overline>{label}</Overline>
             <Txt size={13} w={700} color={color} numberOfLines={1} style={{ flexShrink: 1 }}>
               {value}
             </Txt>

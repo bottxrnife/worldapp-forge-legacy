@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ArrowDownLeft, ArrowUpRight, Gift, Receipt, Star } from 'lucide-react-native';
 import React from 'react';
 import { Linking, Pressable, View } from 'react-native';
-import { BackButton, FadeUp, Screen, Txt } from '../src/components/ui';
+import { BackButton, EmptyState, FadeUp, Screen, Txt } from '../src/components/ui';
 import { ActivityEntry, useApp } from '../src/state/store';
 import { C } from '../src/theme';
 
@@ -68,26 +68,12 @@ export default function Activity() {
       </View>
 
       {activity.length === 0 ? (
-        <View style={{ alignItems: 'center', paddingTop: 90, paddingHorizontal: 20 }}>
-          <View
-            style={{
-              width: 58,
-              height: 58,
-              borderRadius: 19,
-              backgroundColor: C.segBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Receipt size={22} color={C.text3} strokeWidth={2} />
-          </View>
-          <Txt size={16} w={700} style={{ marginTop: 16 }}>
-            No activity yet
-          </Txt>
-          <Txt size={13.5} color={C.text2} center style={{ marginTop: 6 }}>
-            Run a dapp — pay a bill, stamp a loyalty card, send money — and your receipts show up here.
-          </Txt>
-        </View>
+        <EmptyState
+          icon={<Receipt size={22} color={C.text3} strokeWidth={2} />}
+          title="No activity yet"
+          subtitle="Run a dapp — pay a bill, stamp a loyalty card, send money — and your receipts show up here."
+          paddingTop={90}
+        />
       ) : (
         <View style={{ gap: 8, marginTop: 16 }}>
           {activity.map((a, i) => {

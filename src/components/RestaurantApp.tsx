@@ -22,7 +22,7 @@ import { DappListing, DappManifest } from '../types';
 import { C } from '../theme';
 import { MenuItem, MenuOrder } from './MenuOrder';
 import { QR } from './QR';
-import { BackButton, Chip, PrimaryButton, Txt } from './ui';
+import { BackButton, Chip, EmptyState, Overline, PrimaryButton, Txt } from './ui';
 
 type Tab = 'order' | 'rewards' | 'history';
 
@@ -198,19 +198,19 @@ export function RestaurantApp({ manifest, listing }: { manifest: DappManifest; l
         {tab === 'rewards' && (
           <View>
             <View style={{ backgroundColor: C.inkPanel, borderRadius: 20, padding: 18 }}>
-              <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+              <Overline color={C.onInkLabel} ls={0.06}>
                 Your points
-              </Txt>
+              </Overline>
               <Txt size={30} w={800} color={C.white} style={{ marginTop: 4 }}>
                 {points.toLocaleString()}
               </Txt>
-              <Txt size={12.5} color="#9FB0DA" style={{ marginTop: 2 }}>
+              <Txt size={12.5} color={C.onInkDim} style={{ marginTop: 2 }}>
                 {ppd} points per $1 spent
               </Txt>
             </View>
-            <Txt size={13} w={700} color={C.text2} ls={0.04} style={{ textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>
+            <Overline color={C.text2} size={13} ls={0.04} style={{ marginTop: 18, marginBottom: 4 }}>
               Redeem points
-            </Txt>
+            </Overline>
             {rewards.map((r) => {
               const enough = points >= r.cost;
               return (
@@ -276,15 +276,12 @@ export function RestaurantApp({ manifest, listing }: { manifest: DappManifest; l
               </Pressable>
             ))}
             {myOrders.length === 0 && (
-              <View style={{ alignItems: 'center', paddingTop: 60 }}>
-                <Txt size={30}>🧾</Txt>
-                <Txt size={15} w={700} style={{ marginTop: 10 }}>
-                  No orders yet
-                </Txt>
-                <Txt size={13} color={C.text2} center style={{ marginTop: 4, maxWidth: 240 }}>
-                  Place an order and it’ll show up here with a pickup QR.
-                </Txt>
-              </View>
+              <EmptyState
+                icon={<Txt size={24}>🧾</Txt>}
+                title="No orders yet"
+                subtitle="Place an order and it’ll show up here with a pickup QR."
+                paddingTop={64}
+              />
             )}
           </View>
         )}

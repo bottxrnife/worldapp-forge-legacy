@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Copy, Gift, Moon, Receipt, Sparkles, Sun } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { Chip, DappAvatar, ListRow, Screen, SectionHeader, Txt } from '../src/components/ui';
+import { Chip, DappAvatar, ListRow, Overline, Screen, SectionHeader, Txt } from '../src/components/ui';
 import { AgentKitStatus, getAgentKitStatus, runHumanBackedTask } from '../src/services/agentkit';
 import { AgentProfile, getAgentProfile } from '../src/services/identity';
 import { getWalletSnapshot } from '../src/services/wallet';
@@ -122,18 +122,18 @@ function AgentKitCard() {
   return (
     <View style={{ backgroundColor: C.inkPanel, borderRadius: 20, padding: 16, marginBottom: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+        <Overline color={C.onInkLabel} ls={0.06}>
           Human-backed agent · AgentKit
-        </Txt>
+        </Overline>
         <View
           style={{
-            backgroundColor: 'rgba(255,255,255,0.12)',
+            backgroundColor: C.onInkChip,
             borderRadius: 999,
             paddingHorizontal: 10,
             paddingVertical: 4,
           }}
         >
-          <Txt size={10.5} w={700} color={status?.reachable ? C.successStrong : '#9FB0DA'}>
+          <Txt size={10.5} w={700} color={status?.reachable ? C.successStrong : C.onInkDim}>
             {status?.reachable ? 'online' : status ? 'offline' : '…'}
           </Txt>
         </View>
@@ -147,7 +147,7 @@ function AgentKitCard() {
       <Pressable
         onPress={run}
         style={{
-          backgroundColor: 'rgba(255,255,255,0.12)',
+          backgroundColor: C.onInkChip,
           borderRadius: 13,
           paddingVertical: 11,
           alignItems: 'center',

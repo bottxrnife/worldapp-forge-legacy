@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Sparkles } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Chip, DappAvatar, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
+import { Chip, DappAvatar, EmptyState, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
 import { useApp } from '../src/state/store';
 import { DappListing } from '../src/types';
 import { C } from '../src/theme';
@@ -70,6 +71,9 @@ export default function StoreScreen() {
       <Screen padBottom={120}>
         <Txt size={28} w={800} ls={-0.015}>
           Store
+        </Txt>
+        <Txt size={13.5} color={C.text2} style={{ marginTop: 3 }}>
+          Discover, run, and publish onchain mini-apps
         </Txt>
         <View style={{ marginTop: 14 }}>
           <SearchPill placeholder="Search the store…" onPress={() => router.push('/search')} />
@@ -185,14 +189,12 @@ export default function StoreScreen() {
         )}
 
         {featured.length + humans.length + agents.length + recent.length === 0 && (
-          <View style={{ alignItems: 'center', paddingTop: 60, paddingHorizontal: 24 }}>
-            <Txt size={16} w={700}>
-              Nothing in {category} yet
-            </Txt>
-            <Txt size={13.5} color={C.text2} center lh={1.5} style={{ marginTop: 6, maxWidth: 260 }}>
-              Try another category, or describe what you need and the assistant will build it.
-            </Txt>
-            <View style={{ marginTop: 16 }}>
+          <EmptyState
+            icon={<Sparkles size={22} color={C.text3} strokeWidth={2} />}
+            title={`Nothing in ${category} yet`}
+            subtitle="Try another category, or describe what you need and the assistant will build it."
+            paddingTop={64}
+            action={
               <Chip
                 label="✦ Ask the assistant"
                 bg={C.blueSoft}
@@ -202,8 +204,8 @@ export default function StoreScreen() {
                 py={9}
                 onPress={() => router.push('/assistant')}
               />
-            </View>
-          </View>
+            }
+          />
         )}
 
       </Screen>

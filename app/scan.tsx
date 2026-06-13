@@ -64,7 +64,7 @@ export default function Scan() {
           <Txt size={15} w={700} color={C.white} center style={{ marginTop: 16 }}>
             Camera access needed
           </Txt>
-          <Txt size={13} color="#B8C6F2" center lh={1.5} style={{ marginTop: 6, maxWidth: 250 }}>
+          <Txt size={13} color={C.onInkLabel} center lh={1.5} style={{ marginTop: 6, maxWidth: 250 }}>
             Point at any QR — a wallet to pay, a restaurant table to order, an event door to check in,
             or any dapp someone built.
           </Txt>
@@ -155,7 +155,7 @@ export default function Scan() {
               <Txt size={15} w={700} color={C.white} center style={{ marginTop: 16 }}>
                 Camera scanning works on your phone
               </Txt>
-              <Txt size={13} color="#B8C6F2" center lh={1.5} style={{ marginTop: 6, maxWidth: 250 }}>
+              <Txt size={13} color={C.onInkLabel} center lh={1.5} style={{ marginTop: 6, maxWidth: 250 }}>
                 On web, paste a dapp link below or try one of the demo codes.
               </Txt>
             </View>

@@ -35,6 +35,17 @@ const light = {
   stepIdleBg: '#E1E4EC',
   stepIdleNum: '#8A92A6',
   inkPanel: '#16204A',
+  // Text + surfaces that sit ON the dark `inkPanel` (which stays dark in BOTH
+  // themes), so these are identical across light/dark. Tokenized here because
+  // they were previously repeated as raw hex (#B8C6F2 / #9FB0DA / #8C9BCB) in
+  // ~20 places — centralizing keeps the dark-panel language coherent.
+  onInk: '#FFFFFF', // primary text on ink
+  onInkLabel: '#B8C6F2', // bright uppercase label / accent text
+  onInkDim: '#9FB0DA', // secondary text
+  onInkFaint: '#8C9BCB', // tertiary / idle text
+  onInkChip: 'rgba(255,255,255,0.12)', // pill / chip surface on ink
+  onInkHair: 'rgba(255,255,255,0.12)', // hairline divider on ink
+  onInkTrack: 'rgba(255,255,255,0.14)', // progress-track on ink
   white: '#FFFFFF',
 };
 
@@ -71,6 +82,14 @@ const dark: Palette = {
   stepIdleBg: '#232938',
   stepIdleNum: '#5C6478',
   inkPanel: '#1D2845',
+  // On-ink tokens — identical to light (the ink panel is dark in both themes).
+  onInk: '#FFFFFF',
+  onInkLabel: '#B8C6F2',
+  onInkDim: '#9FB0DA',
+  onInkFaint: '#8C9BCB',
+  onInkChip: 'rgba(255,255,255,0.12)',
+  onInkHair: 'rgba(255,255,255,0.12)',
+  onInkTrack: 'rgba(255,255,255,0.14)',
   white: '#FFFFFF',
 };
 
@@ -97,6 +116,23 @@ export function bgFor(mode: ThemeMode): string {
 export const C: Palette = new Proxy({} as Palette, {
   get: (_target, key) => activePalette[key as keyof Palette],
 });
+
+/**
+ * Corner-radius scale. The app previously used a scattered set of radii
+ * (11/12/13/14/16/18/20/21/22/24/26/28); this is the canonical ladder so new
+ * UI stays on a consistent rhythm:
+ *   xs control insets · sm inner chips/buttons · md inputs · lg list rows ·
+ *   xl cards · xxl hero/feature panels · pill fully-rounded.
+ */
+export const RADIUS = {
+  xs: 11,
+  sm: 13,
+  md: 16,
+  lg: 20,
+  xl: 22,
+  xxl: 26,
+  pill: 999,
+} as const;
 
 /** Geist family name for a given weight. */
 export function font(weight: 400 | 500 | 600 | 700 | 800): string {

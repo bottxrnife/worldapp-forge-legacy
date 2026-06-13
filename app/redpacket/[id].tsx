@@ -104,8 +104,8 @@ export default function RedPacketView() {
         </View>
 
         <View style={{ backgroundColor: C.inkPanel, borderRadius: 26, padding: 28, marginTop: 16, alignItems: 'center' }}>
-          <SuccessCheck size={64} bg="rgba(255,255,255,0.12)" color={C.white} glyph="🎉" />
-          <Txt size={14} color="#B8C6F2" style={{ marginTop: 18 }}>
+          <SuccessCheck size={64} bg={C.onInkChip} color={C.white} glyph="🎉" />
+          <Txt size={14} color={C.onInkLabel} style={{ marginTop: 18 }}>
             You got
           </Txt>
           <CountUp
@@ -117,7 +117,7 @@ export default function RedPacketView() {
             color={C.white}
             style={{ marginTop: 4 }}
           />
-          <Txt size={12.5} color="#B8C6F2" center lh={1.5} style={{ marginTop: 10, maxWidth: 260 }}>
+          <Txt size={12.5} color={C.onInkLabel} center lh={1.5} style={{ marginTop: 10, maxWidth: 260 }}>
             Your share is recorded to your activity. It settles to your wallet via LI.FI once the sender funds the pool.
           </Txt>
         </View>
@@ -153,7 +153,7 @@ export default function RedPacketView() {
             width: 64,
             height: 64,
             borderRadius: 32,
-            backgroundColor: 'rgba(255,255,255,0.12)',
+            backgroundColor: C.onInkChip,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -163,10 +163,10 @@ export default function RedPacketView() {
         <Txt size={32} w={800} color={C.white} style={{ marginTop: 16 }}>
           ${packet.totalUsd.toFixed(2)}
         </Txt>
-        <Txt size={13} color="#B8C6F2" style={{ marginTop: 3 }}>
+        <Txt size={13} color={C.onInkLabel} style={{ marginTop: 3 }}>
           🧧 {opened}/{packet.count} opened · ${remainingUsd.toFixed(2)} left
         </Txt>
-        <View style={{ height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)', marginTop: 16, overflow: 'hidden', alignSelf: 'stretch' }}>
+        <View style={{ height: 7, borderRadius: 4, backgroundColor: C.onInkTrack, marginTop: 16, overflow: 'hidden', alignSelf: 'stretch' }}>
           <View style={{ width: `${Math.round((opened / Math.max(1, packet.count)) * 100)}%`, height: 7, backgroundColor: C.accent }} />
         </View>
       </View>

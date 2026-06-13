@@ -469,7 +469,7 @@ export default function Runtime() {
                   width: 30,
                   height: 30,
                   borderRadius: 15,
-                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  backgroundColor: C.onInkChip,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -483,7 +483,7 @@ export default function Runtime() {
                   Earns yield in {manifest.workflow.composer.vaultLabel ?? 'a vault'}
                   {manifest.workflow.composer.protocol ? ` · ${manifest.workflow.composer.protocol}` : ''}
                 </Txt>
-                <Txt size={11.5} color="#9FB0DA" style={{ marginTop: 1 }}>
+                <Txt size={11.5} color={C.onInkDim} style={{ marginTop: 1 }}>
                   Swap + deposit bundled into one transaction by LI.FI Composer
                 </Txt>
               </View>

@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TABBAR_CLEARANCE } from '../src/components/TabBar';
-import { BackButton, DappAvatar, FadeUp, Pulse, Txt, TypingDots } from '../src/components/ui';
+import { BackButton, DappAvatar, EmptyState, FadeUp, Overline, Pulse, Txt, TypingDots } from '../src/components/ui';
 import { hasAgentCreds, hasDirectAnthropicKey, runAgentTurn } from '../src/services/agent';
 import { LIFI_DIAMOND } from '../src/services/composer';
 import { ENV } from '../src/services/env';
@@ -57,17 +57,17 @@ function ComposerInspector({
   ];
   const kv = (k: string, v: string) => (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-      <Txt size={11.5} color="#9FB0DA">{k}</Txt>
+      <Txt size={11.5} color={C.onInkDim}>{k}</Txt>
       <Txt size={11.5} w={600} color={C.white} numberOfLines={1} style={{ flexShrink: 1 }}>{v}</Txt>
     </View>
   );
   return (
     <View style={{ backgroundColor: C.inkPanel, borderRadius: 18, padding: 16, marginTop: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Txt size={11} w={700} color="#B8C6F2" ls={0.06} style={{ textTransform: 'uppercase' }}>
+        <Overline color={C.onInkLabel} ls={0.06}>
           Composer · {ops.length} ops
-        </Txt>
-        <View style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
+        </Overline>
+        <View style={{ backgroundColor: C.onInkChip, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
           <Txt size={11} w={700} color={C.white}>
             1 transaction
           </Txt>
@@ -76,7 +76,7 @@ function ComposerInspector({
       <View style={{ marginTop: 12, gap: 9 }}>
         {ops.map((op, i) => (
           <View key={op.k} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.onInkChip, alignItems: 'center', justifyContent: 'center' }}>
               <Txt size={11} w={700} color={C.white}>
                 {i + 1}
               </Txt>
@@ -85,7 +85,7 @@ function ComposerInspector({
               <Txt size={13.5} w={700} color={C.white}>
                 {op.label}
               </Txt>
-              <Txt size={11.5} color="#9FB0DA">
+              <Txt size={11.5} color={C.onInkDim}>
                 {op.detail}
               </Txt>
             </View>
@@ -634,26 +634,12 @@ export default function Assistant() {
                 </View>
               </View>
             ) : (
-              <View style={{ alignItems: 'center', paddingTop: 90 }}>
-                <View
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: 19,
-                    backgroundColor: C.segBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Sparkles size={22} color={C.text3} strokeWidth={2} />
-                </View>
-                <Txt size={16} w={700} style={{ marginTop: 16 }}>
-                  No flow yet
-                </Txt>
-                <Txt size={13.5} color={C.text2} center style={{ marginTop: 6 }}>
-                  Describe a dapp in the chat and the{'\n'}assistant will compose one.
-                </Txt>
-              </View>
+              <EmptyState
+                icon={<Sparkles size={22} color={C.text3} strokeWidth={2} />}
+                title="No flow yet"
+                subtitle="Describe a dapp in the chat and the assistant will compose one."
+                paddingTop={90}
+              />
             )}
           </ScrollView>
         )}

@@ -93,7 +93,7 @@ export default function NewRedPacket() {
             width: 60,
             height: 60,
             borderRadius: 30,
-            backgroundColor: 'rgba(255,255,255,0.12)',
+            backgroundColor: C.onInkChip,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -103,7 +103,7 @@ export default function NewRedPacket() {
         <Txt size={28} w={800} color={C.white} style={{ marginTop: 14 }}>
           ${total.toFixed(2)}
         </Txt>
-        <Txt size={13} color="#B8C6F2" style={{ marginTop: 3 }}>
+        <Txt size={13} color={C.onInkLabel} style={{ marginTop: 3 }}>
           🧧 {n} {n === 1 ? 'packet' : 'packets'} · {split === 'lucky' ? 'random amounts' : 'split evenly'}
         </Txt>
       </View>

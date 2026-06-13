@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { Search, Sparkles, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import { BackButton, Chip, DappAvatar, ListRow, OpenPill, Txt } from '../src/components/ui';
+import { BackButton, Chip, DappAvatar, EmptyState, ListRow, OpenPill, Txt } from '../src/components/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { filterListings, useApp } from '../src/state/store';
@@ -86,32 +86,31 @@ export default function SearchScreen() {
             </View>
           </>
         ) : results.length === 0 ? (
-          <View style={{ alignItems: 'center', paddingTop: 50 }}>
-            <Txt size={15} w={700}>
-              No dapps match “{query}”
-            </Txt>
-            <Txt size={13} color={C.text2} center style={{ marginTop: 6, maxWidth: 260 }}>
-              Can’t find it? Describe what you need and the assistant will build it.
-            </Txt>
-            <Pressable
-              onPress={() => router.push('/assistant')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                backgroundColor: C.cta,
-                borderRadius: 14,
-                paddingVertical: 13,
-                paddingHorizontal: 20,
-                marginTop: 18,
-              }}
-            >
-              <Sparkles size={15} color={C.ctaText} strokeWidth={2.4} />
-              <Txt size={14} w={700} color={C.ctaText}>
-                Ask the assistant
-              </Txt>
-            </Pressable>
-          </View>
+          <EmptyState
+            icon={<Search size={22} color={C.text3} strokeWidth={2} />}
+            title={`No dapps match “${query}”`}
+            subtitle="Can’t find it? Describe what you need and the assistant will build it."
+            paddingTop={56}
+            action={
+              <Pressable
+                onPress={() => router.push('/assistant')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  backgroundColor: C.cta,
+                  borderRadius: 14,
+                  paddingVertical: 13,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <Sparkles size={15} color={C.ctaText} strokeWidth={2.4} />
+                <Txt size={14} w={700} color={C.ctaText}>
+                  Ask the assistant
+                </Txt>
+              </Pressable>
+            }
+          />
         ) : (
           <>
             <Txt size={12.5} color={C.text2} style={{ marginBottom: 10 }}>

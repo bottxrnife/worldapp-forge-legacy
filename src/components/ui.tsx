@@ -323,6 +323,40 @@ export function Chip({
   return onPress ? <PressableScale onPress={onPress}>{inner}</PressableScale> : inner;
 }
 
+/**
+ * Overline — the small uppercase, letter-spaced label that captions cards and
+ * sections ("WHAT THIS DAPP DOES", "TOTAL POINTS", …). Previously hand-rolled
+ * ~20 times with slightly different size/spacing/color; this is the canonical
+ * one. Defaults match the most common usage (11px / 700 / text3 / 0.05em).
+ */
+export function Overline({
+  children,
+  color = C.text3,
+  size = 11,
+  ls: lsEm = 0.05,
+  numberOfLines,
+  style,
+}: PropsWithChildren<{
+  color?: string;
+  size?: number;
+  ls?: number;
+  numberOfLines?: number;
+  style?: StyleProp<TextStyle>;
+}>) {
+  return (
+    <Txt
+      size={size}
+      w={700}
+      color={color}
+      ls={lsEm}
+      numberOfLines={numberOfLines}
+      style={[{ textTransform: 'uppercase' }, style]}
+    >
+      {children}
+    </Txt>
+  );
+}
+
 /** Two-letter monogram on a soft-blue tile — the default dapp icon. */
 export function IconTile({
   label,
@@ -583,6 +617,52 @@ export function OpenPill() {
       <Txt size={12} w={700} color={C.ctaText}>
         Open
       </Txt>
+    </View>
+  );
+}
+
+/**
+ * EmptyState — the centered "nothing here yet" placeholder (a soft icon tile,
+ * a title, a sentence, and an optional action). Standardizes the several
+ * one-off empty states (Activity, Store, Search, the assistant Flow tab,
+ * order history) onto one layout.
+ */
+export function EmptyState({
+  icon,
+  title,
+  subtitle,
+  action,
+  paddingTop = 80,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  paddingTop?: number;
+}) {
+  return (
+    <View style={{ alignItems: 'center', paddingTop, paddingHorizontal: 20 }}>
+      <View
+        style={{
+          width: 58,
+          height: 58,
+          borderRadius: 19,
+          backgroundColor: C.segBg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icon}
+      </View>
+      <Txt size={16} w={700} center style={{ marginTop: 16 }}>
+        {title}
+      </Txt>
+      {subtitle ? (
+        <Txt size={13.5} color={C.text2} center lh={1.5} style={{ marginTop: 6, maxWidth: 280 }}>
+          {subtitle}
+        </Txt>
+      ) : null}
+      {action ? <View style={{ marginTop: 18 }}>{action}</View> : null}
     </View>
   );
 }
