@@ -275,6 +275,7 @@ type AppState = {
   homeShortcuts: HomeShortcut[];
   addShortcut: (s: HomeShortcut) => void;
   removeShortcut: (id: string) => void;
+  moveShortcut: (id: string, dir: -1 | 1) => void;
   resetShortcuts: () => void;
 
   // reviews (one per human, keyed by World ID nullifier)
@@ -312,6 +313,7 @@ type AppState = {
   agentBusy: boolean;
   pushMessage: (m: UiMessage) => void;
   setAgentBusy: (b: boolean) => void;
+  newChat: () => void;
 
   // generated draft
   draft: DappManifest | null;
@@ -433,6 +435,15 @@ export const useApp = create<AppState>((set, get) => ({
     persistJSON(KEYS.shortcuts, homeShortcuts);
     set({ homeShortcuts });
   },
+  moveShortcut: (id, dir) => {
+    const list = [...get().homeShortcuts];
+    const i = list.findIndex((x) => x.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    persistJSON(KEYS.shortcuts, list);
+    set({ homeShortcuts: list });
+  },
   resetShortcuts: () => {
     persistJSON(KEYS.shortcuts, DEFAULT_SHORTCUTS);
     set({ homeShortcuts: DEFAULT_SHORTCUTS });
@@ -512,6 +523,7 @@ export const useApp = create<AppState>((set, get) => ({
   agentBusy: false,
   pushMessage: (m) => set({ messages: [...get().messages, m] }),
   setAgentBusy: (agentBusy) => set({ agentBusy }),
+  newChat: () => set({ messages: [], apiHistory: [], draft: null, simulation: null }),
 
   draft: null,
   draftPublishedLive: false,

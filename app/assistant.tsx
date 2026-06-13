@@ -1,10 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowUp, Sparkles } from 'lucide-react-native';
+import { ArrowUp, SquarePen, Sparkles } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Easing,
   Keyboard,
   Modal,
   Platform,
@@ -250,26 +249,17 @@ export default function Assistant() {
     setAgentBusy,
     setDraft,
     setAssistantImmersive,
+    newChat,
   } = useApp();
 
-  // Create stays "docked" (the persistent tab bar shows, input floats above it)
-  // until the user engages — then it goes immersive: the tab bar slides away and
-  // the input drops to the bottom for a full-screen chat.
-  const immersive = composing || input.length > 0 || messages.length > 0;
-  const dock = useRef(new Animated.Value(immersive ? 0 : 1)).current; // 1 = docked
+  // Create keeps the persistent tab bar visible at all times (issue #2): it no
+  // longer hides just because a chat is active. The input floats above the bar;
+  // the fullscreen composer Modal covers the screen while the user is typing.
   useEffect(() => {
-    setAssistantImmersive(immersive);
-    Animated.timing(dock, {
-      toValue: immersive ? 0 : 1,
-      duration: 240,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [immersive, dock, setAssistantImmersive]);
-  // leaving Create restores the tab bar across the app
-  useEffect(() => () => setAssistantImmersive(false), [setAssistantImmersive]);
-  const liftY = dock.interpolate({ inputRange: [0, 1], outputRange: [0, -TABBAR_CLEARANCE] });
-  const extraPad = immersive ? 0 : TABBAR_CLEARANCE;
+    setAssistantImmersive(false);
+    return () => setAssistantImmersive(false);
+  }, [setAssistantImmersive]);
+  const extraPad = TABBAR_CLEARANCE;
 
   // ENSIP-26: resolve the agent's on-chain identity (address + agent-context).
   // Real ENS read via the Universal Resolver — drives the verified badge below.
@@ -348,6 +338,30 @@ export default function Assistant() {
                 {agentSourceLabel()}
               </Txt>
             </View>
+            {messages.length > 0 && (
+              <Pressable
+                onPress={() => {
+                  newChat();
+                  setInput('');
+                  setComposing(false);
+                }}
+                hitSlop={8}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: C.surface,
+                  borderRadius: 999,
+                  paddingHorizontal: 13,
+                  paddingVertical: 8,
+                }}
+              >
+                <SquarePen size={14} color={C.blueLink} strokeWidth={2.4} />
+                <Txt size={12.5} w={700} color={C.blueLink}>
+                  New
+                </Txt>
+              </Pressable>
+            )}
           </View>
           <View
             style={{
@@ -487,14 +501,14 @@ export default function Assistant() {
               )}
             </ScrollView>
 
-            {/* input — floats above the tab bar when docked, drops to the bottom when immersive */}
+            {/* input — always floats just above the persistent tab bar */}
             <Animated.View
               style={{
                 position: 'absolute',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                transform: [{ translateY: liftY }],
+                transform: [{ translateY: -TABBAR_CLEARANCE }],
               }}
               pointerEvents="box-none"
             >

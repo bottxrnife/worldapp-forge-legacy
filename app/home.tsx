@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Pencil, Plus, X } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, X } from 'lucide-react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Chip, DappAvatar, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
+import { Chip, DappAvatar, FadeUp, ListRow, OpenPill, SearchPill, SectionHeader, Txt } from '../src/components/ui';
 import { dappEmoji } from '../src/dappStyle';
 import { getWalletSnapshot } from '../src/services/wallet';
 import { HomeShortcut, syncLoyaltyFromChain, useApp } from '../src/state/store';
@@ -26,12 +26,17 @@ function ShortcutTile({
   label,
   onPress,
   onRemove,
+  onMoveLeft,
+  onMoveRight,
 }: {
   emoji: string;
   label: string;
   onPress: () => void;
   onRemove?: () => void;
+  onMoveLeft?: () => void;
+  onMoveRight?: () => void;
 }) {
+  const editing = !!onRemove;
   return (
     <Pressable
       onPress={onPress}
@@ -41,7 +46,7 @@ function ShortcutTile({
         backgroundColor: C.surface,
         borderRadius: 20,
         paddingTop: 14,
-        paddingBottom: 12,
+        paddingBottom: editing ? 8 : 12,
         paddingHorizontal: 6,
         alignItems: 'center',
         gap: 8,
@@ -62,6 +67,17 @@ function ShortcutTile({
       <Txt size={12} w={600} numberOfLines={1}>
         {label}
       </Txt>
+      {/* hold-free reorder: move this tile left / right within the grid */}
+      {editing && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 1 }}>
+          <Pressable onPress={onMoveLeft} hitSlop={6} disabled={!onMoveLeft}>
+            <ChevronLeft size={16} color={onMoveLeft ? C.blueLink : C.divider} strokeWidth={2.6} />
+          </Pressable>
+          <Pressable onPress={onMoveRight} hitSlop={6} disabled={!onMoveRight}>
+            <ChevronRight size={16} color={onMoveRight ? C.blueLink : C.divider} strokeWidth={2.6} />
+          </Pressable>
+        </View>
+      )}
       {onRemove && (
         <Pressable
           onPress={onRemove}
@@ -139,10 +155,13 @@ export default function Home() {
   const homeShortcuts = useApp((s) => s.homeShortcuts);
   const addShortcut = useApp((s) => s.addShortcut);
   const removeShortcut = useApp((s) => s.removeShortcut);
+  const moveShortcut = useApp((s) => s.moveShortcut);
   const resetShortcuts = useApp((s) => s.resetShortcuts);
+  const activity = useApp((s) => s.activity);
   useApp((s) => s.themeMode); // repaint on theme toggle
   const [editing, setEditing] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [addQuery, setAddQuery] = useState('');
 
   // Everything the user could add: the action catalog + every store dapp,
   // minus whatever's already on the grid.
@@ -155,6 +174,27 @@ export default function Home() {
   const addable = [...ACTION_CATALOG, ...dappShortcuts].filter(
     (s) => !homeShortcuts.some((x) => x.id === s.id)
   );
+  // Search within the Add sheet (issue #3): filter by label.
+  const q = addQuery.trim().toLowerCase();
+  const filteredAddable = q
+    ? addable.filter((s) => s.label.toLowerCase().includes(q))
+    : addable;
+  // "Recent" dapps to add: most-recently-used dapps from the activity feed that
+  // aren't already on the grid (deduped, newest first).
+  const recentAddable = useMemo(() => {
+    const seen = new Set<string>();
+    const out: HomeShortcut[] = [];
+    for (const a of activity) {
+      const id = `dapp:${a.ens}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const match = addable.find((s) => s.id === id);
+      if (match) out.push(match);
+      if (out.length >= 6) break;
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activity, homeShortcuts, listings]);
 
   useEffect(() => {
     getWalletSnapshot()
@@ -167,9 +207,29 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Bottom-sheet motion (issue #1): the backdrop fades (Modal animationType
+  // "fade") while the sheet itself slides up independently — previously the whole
+  // Modal slid, so the dark layer "followed" the sheet.
+  const sheet = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (showAdd) {
+      sheet.setValue(0);
+      Animated.timing(sheet, {
+        toValue: 1,
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      setAddQuery('');
+    }
+  }, [showAdd, sheet]);
+  const sheetY = sheet.interpolate({ inputRange: [0, 1], outputRange: [480, 0] });
+
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Screen padBottom={120}>
+      {/* PINNED header — greeting, balance, identity, search stay put (issue #4) */}
+      <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 20, backgroundColor: C.bg }}>
         {/* shared header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <View>
@@ -229,10 +289,17 @@ export default function Home() {
           </Pressable>
         </View>
 
-        <View style={{ marginTop: 16 }}>
+        <View style={{ marginTop: 16, marginBottom: 14 }}>
           <SearchPill testID="home-search" placeholder="Search dapps or ask for one…" onPress={() => router.push('/search')} />
         </View>
+      </View>
 
+      {/* scrollable body */}
+      <FadeUp style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 + Math.max(insets.bottom, 12) }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* hero card */}
         <Pressable
           onPress={() => router.push('/assistant')}
@@ -301,7 +368,7 @@ export default function Home() {
           </Pressable>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-          {homeShortcuts.map((s) => (
+          {homeShortcuts.map((s, i) => (
             <ShortcutTile
               key={s.id}
               emoji={s.emoji}
@@ -310,6 +377,8 @@ export default function Home() {
                 if (!editing) router.push(s.route as any);
               }}
               onRemove={editing ? () => removeShortcut(s.id) : undefined}
+              onMoveLeft={editing && i > 0 ? () => moveShortcut(s.id, -1) : undefined}
+              onMoveRight={editing && i < homeShortcuts.length - 1 ? () => moveShortcut(s.id, 1) : undefined}
             />
           ))}
           {editing && <AddTile onPress={() => setShowAdd(true)} />}
@@ -362,13 +431,17 @@ export default function Home() {
             onPress={() => router.push('/detail/tickets.dappdock.eth')}
           />
         </View>
-      </Screen>
+        </ScrollView>
+      </FadeUp>
 
-      <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => setShowAdd(false)}>
+      {/* Add-to-home sheet: backdrop fades, sheet slides up on its own (issue #1);
+          searchable with a recent-dapps row (issue #3). */}
+      <Modal visible={showAdd} transparent animationType="fade" onRequestClose={() => setShowAdd(false)}>
         <Pressable
           onPress={() => setShowAdd(false)}
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}
         >
+          <Animated.View style={{ transform: [{ translateY: sheetY }] }}>
           <Pressable
             onPress={() => {}}
             style={{
@@ -378,10 +451,10 @@ export default function Home() {
               paddingTop: 18,
               paddingHorizontal: 20,
               paddingBottom: Math.max(insets.bottom, 16) + 8,
-              maxHeight: '78%',
+              maxHeight: '82%',
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <Txt size={18} w={800}>
                 Add to home
               </Txt>
@@ -398,8 +471,74 @@ export default function Home() {
                 </Pressable>
               </View>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {addable.map((s) => (
+
+            {/* search dapps & actions */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+                backgroundColor: C.surface,
+                borderRadius: 999,
+                paddingHorizontal: 16,
+                paddingVertical: 11,
+                marginBottom: 6,
+              }}
+            >
+              <Search size={17} color={C.text3} strokeWidth={2.4} />
+              <TextInput
+                value={addQuery}
+                onChangeText={setAddQuery}
+                placeholder="Search dapps & actions…"
+                placeholderTextColor={C.text3}
+                style={{ flex: 1, fontSize: 14.5, fontFamily: 'Geist_400Regular', color: C.text, padding: 0 }}
+              />
+              {addQuery.length > 0 && (
+                <Pressable onPress={() => setAddQuery('')} hitSlop={8}>
+                  <X size={15} color={C.text3} strokeWidth={2.6} />
+                </Pressable>
+              )}
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {/* recent dapps — quick add chips (only when not actively searching) */}
+              {!q && recentAddable.length > 0 && (
+                <View style={{ marginTop: 8, marginBottom: 6 }}>
+                  <Txt size={11} w={700} color={C.text3} ls={0.05} style={{ textTransform: 'uppercase', marginBottom: 8 }}>
+                    Recent
+                  </Txt>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {recentAddable.map((s) => (
+                      <Pressable
+                        key={s.id}
+                        onPress={() => addShortcut(s)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 7,
+                          backgroundColor: C.surface,
+                          borderRadius: 999,
+                          paddingVertical: 8,
+                          paddingHorizontal: 12,
+                        }}
+                      >
+                        <Txt size={15}>{s.emoji}</Txt>
+                        <Txt size={13} w={600} numberOfLines={1} style={{ maxWidth: 120 }}>
+                          {s.label}
+                        </Txt>
+                        <Plus size={15} color={C.blueLink} strokeWidth={2.6} />
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {!q && (
+                <Txt size={11} w={700} color={C.text3} ls={0.05} style={{ textTransform: 'uppercase', marginTop: 10, marginBottom: 4 }}>
+                  All
+                </Txt>
+              )}
+              {filteredAddable.map((s) => (
                 <Pressable
                   key={s.id}
                   onPress={() => addShortcut(s)}
@@ -421,13 +560,14 @@ export default function Home() {
                   <Plus size={18} color={C.blueLink} strokeWidth={2.6} />
                 </Pressable>
               ))}
-              {addable.length === 0 && (
+              {filteredAddable.length === 0 && (
                 <Txt size={13} color={C.text3} center style={{ paddingVertical: 24 }}>
-                  Everything’s already on your home screen.
+                  {addable.length === 0 ? 'Everything’s already on your home screen.' : `No matches for “${addQuery}”.`}
                 </Txt>
               )}
             </ScrollView>
           </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
     </View>

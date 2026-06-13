@@ -8,15 +8,41 @@ import {
   Geist_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/geist';
-import { Stack } from 'expo-router';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, BackHandler, Easing, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TabBar } from '../src/components/TabBar';
 import { loadPersistedState, loadThemePreference, useApp } from '../src/state/store';
 import { bgFor, C, ThemeMode } from '../src/theme';
+
+/**
+ * Android hardware-back handler. Tab switches use router.replace (so tabs don't
+ * stack), which means without this, back from any tab would exit the app. Here:
+ * pop the stack when possible; else fall back to Home; only exit from Home or the
+ * onboarding screen. (No-op on iOS, which has no hardware back button.)
+ */
+function HardwareBack() {
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (router.canGoBack()) {
+        router.back();
+        return true;
+      }
+      if (pathname !== '/home' && pathname !== '/') {
+        router.replace('/home');
+        return true;
+      }
+      return false; // let the OS close the app from Home / onboarding
+    });
+    return () => sub.remove();
+  }, [router, pathname]);
+  return null;
+}
 
 /**
  * Theme crossfade — on a light/dark switch the palette swaps instantly, which
@@ -83,6 +109,7 @@ export default function RootLayout() {
       />
       {/* One persistent tab bar for all tab routes — never remounts on switch */}
       <TabBar />
+      <HardwareBack />
       <ThemeFade mode={themeMode} />
     </SafeAreaProvider>
   );

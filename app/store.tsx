@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Chip, DappAvatar, ListRow, OpenPill, Screen, SearchPill, SectionHeader, Txt } from '../src/components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Chip, DappAvatar, FadeUp, ListRow, OpenPill, SearchPill, SectionHeader, Txt } from '../src/components/ui';
 import { useApp } from '../src/state/store';
 import { DappListing } from '../src/types';
 import { C } from '../src/theme';
@@ -43,6 +44,7 @@ function FeaturedCard({ listing, onPress }: { listing: DappListing; onPress: () 
 
 export default function StoreScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const listings = useApp((s) => s.listings);
   useApp((s) => s.themeMode); // repaint on theme toggle
   const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
@@ -67,7 +69,8 @@ export default function StoreScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Screen padBottom={120}>
+      {/* PINNED header — title, search, and category pills stay put (issue #4) */}
+      <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 20, backgroundColor: C.bg }}>
         <Txt size={28} w={800} ls={-0.015}>
           Store
         </Txt>
@@ -101,7 +104,14 @@ export default function StoreScreen() {
             );
           })}
         </ScrollView>
+      </View>
 
+      {/* scrollable body */}
+      <FadeUp style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 120 + Math.max(insets.bottom, 12) }}
+          showsVerticalScrollIndicator={false}
+        >
         {featured.length > 0 && (
           <ScrollView
             horizontal
@@ -205,8 +215,8 @@ export default function StoreScreen() {
             </View>
           </View>
         )}
-
-      </Screen>
+        </ScrollView>
+      </FadeUp>
     </View>
   );
 }

@@ -6,6 +6,7 @@ import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QR } from '../../src/components/QR';
 import { BackButton, Chip, DappAvatar, PrimaryButton, Screen, Txt } from '../../src/components/ui';
+import { dappEmoji } from '../../src/dappStyle';
 import { shareLink } from '../../src/services/links';
 import { verifyHuman } from '../../src/services/verification';
 import { findListing, hasListing, useApp } from '../../src/state/store';
@@ -60,6 +61,8 @@ export default function Detail() {
   useApp((s) => s.themeMode); // repaint on theme toggle
   const savedEns = useApp((s) => s.savedEns);
   const toggleSave = useApp((s) => s.toggleSave);
+  const addShortcut = useApp((s) => s.addShortcut);
+  const removeShortcut = useApp((s) => s.removeShortcut);
   const reviewsByEns = useApp((s) => s.reviews);
   const submitReview = useApp((s) => s.submitReview);
   const recordActivity = useApp((s) => s.recordActivity);
@@ -100,6 +103,23 @@ export default function Detail() {
   const listing = findListing(ens);
   const m = listing.manifest;
   const saved = savedEns.includes(m.ensName);
+
+  // Favoriting (the heart) also pins the dapp to the Home shortcut grid, and
+  // un-favoriting removes it (issue #3).
+  const toggleFavorite = () => {
+    const id = `dapp:${m.ensName}`;
+    if (saved) {
+      removeShortcut(id);
+    } else {
+      addShortcut({
+        id,
+        emoji: dappEmoji(m.ensName, m.category),
+        label: m.name,
+        route: `/detail/${m.ensName}`,
+      });
+    }
+    toggleSave(m.ensName);
+  };
 
   const userReviews = reviewsByEns[m.ensName] ?? [];
   const combinedCount = listing.reviews + userReviews.length;
@@ -184,7 +204,7 @@ export default function Detail() {
           </Pressable>
           <Pressable
             testID="detail-save"
-            onPress={() => toggleSave(m.ensName)}
+            onPress={toggleFavorite}
             hitSlop={8}
             style={{
               width: 38,
