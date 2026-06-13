@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin:0; padding:0; background:#E9EBF2; }
+    * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes blink { 0%, 80%, 100% { opacity:0.25; } 40% { opacity:1; } }
+    @keyframes pulse { 0%, 100% { box-shadow:0 0 0 0 rgba(134,164,244,0.45); } 70% { box-shadow:0 0 0 9px rgba(134,164,244,0); } }
+    ::-webkit-scrollbar { width:0; height:0; }
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#DCE7FF"></rect><rect x="30" y="30" width="40" height="40" rx="12" fill="#0B1020"></rect><text x="50" y="58" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="800" fill="#FFFFFF">D</text></svg></template>
+
+<div style="min-height:100vh; background:#E9EBF2; display:flex; gap:40px; justify-content:center; align-items:flex-start; padding:44px 32px 90px; font-family:'Geist', Helvetica, Arial, sans-serif; color:#0B1020;">
+
+  <!-- ============ DESIGN NOTES PANEL ============ -->
+  <div data-screen-label="Design notes panel" style="width:312px; flex:none; display:flex; flex-direction:column; gap:14px; position:sticky; top:44px;">
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="width:40px; height:40px; border-radius:13px; background:#0B1020; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:800;">D</div>
+      <div>
+        <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em;">DappDock</div>
+        <div style="font-size:12.5px; color:#667085;">One app for every dapp.</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border-radius:18px; padding:16px 18px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9AA1B2; margin-bottom:8px;">Assumptions</div>
+      <div style="font-size:12.5px; color:#3D4663; line-height:1.55; display:flex; flex-direction:column; gap:6px;">
+        <div>• Periwinkle palette &amp; black CTAs per brief; Geist type.</div>
+        <div>• Frame: minimal dark bezel (judge-friendly, chain-neutral).</div>
+        <div>• Assistant tabs simplified to Chat / Flow — Preview and Publish are full screens reached via CTAs.</div>
+        <div>• Demo is scripted around the $5 team-dues dapp.</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border-radius:18px; padding:16px 18px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9AA1B2; margin-bottom:10px;">Palette</div>
+      <div style="display:flex; gap:8px;">
+        <div style="width:28px; height:28px; border-radius:50%; background:#F5F6FA; border:1px solid #E5E7EB;"></div>
+        <div style="width:28px; height:28px; border-radius:50%; background:#DCE7FF;"></div>
+        <div style="width:28px; height:28px; border-radius:50%; background:#86A4F4;"></div>
+        <div style="width:28px; height:28px; border-radius:50%; background:#0B1020;"></div>
+        <div style="width:28px; height:28px; border-radius:50%; background:#2DA866;"></div>
+        <div style="width:28px; height:28px; border-radius:50%; background:#F2C94C;"></div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border-radius:18px; padding:16px 18px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9AA1B2; margin-bottom:10px;">Jump to a screen</div>
+      <div style="display:flex; flex-wrap:wrap; gap:7px;">
+        <div onClick="{{ goOnboarding }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">1 Onboarding</div>
+        <div onClick="{{ goHome }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">2 Home</div>
+        <div onClick="{{ goStore }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">3 Store</div>
+        <div onClick="{{ goDetail }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">4 Dapp detail</div>
+        <div onClick="{{ goRuntime }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">5 Runtime</div>
+        <div onClick="{{ goAssistant }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">6 Assistant</div>
+        <div onClick="{{ goPreview }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">7 Preview</div>
+        <div onClick="{{ goPublish }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">8 Publish</div>
+        <div onClick="{{ goSuccess }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">8b Success</div>
+        <div onClick="{{ goProfile }}" style="background:#F5F6FA; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#3D4663;">9 Profile</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border-radius:18px; padding:16px 18px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9AA1B2; margin-bottom:10px;">Home variants</div>
+      <div style="display:flex; gap:7px;">
+        <div onClick="{{ setVarA }}" style="{{ varAStyle }}">A · Classic hub</div>
+        <div onClick="{{ setVarB }}" style="{{ varBStyle }}">B · Services</div>
+        <div onClick="{{ setVarC }}" style="{{ varCStyle }}">C · Assistant</div>
+      </div>
+    </div>
+
+    <div style="background:#DCE7FF; border-radius:18px; padding:16px 18px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#3450A1; margin-bottom:8px;">Judge demo script</div>
+      <div style="font-size:12.5px; color:#22305C; line-height:1.6; display:flex; flex-direction:column; gap:5px;">
+        <div>1. Onboarding → Start with World ID</div>
+        <div>2. Home → tap “Create a dapp”</div>
+        <div>3. Assistant → tap “Collect payments” chip</div>
+        <div>4. Open preview → Publish → checklist</div>
+        <div>5. Publish to DappDock → success</div>
+        <div>6. Open in store → detail → Run dapp</div>
+        <div>7. Pay → watch LI.FI flow → done</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PHONE ============ -->
+  <div style="flex:none;">
+    <div style="width:392px; height:846px; background:#F5F6FA; border-radius:50px; border:10px solid #14161F; box-shadow:0 34px 70px rgba(11,16,32,0.28); overflow:hidden; position:relative;">
+
+      <!-- status bar -->
+      <div style="height:46px; display:flex; justify-content:space-between; align-items:center; padding:0 26px; font-size:14px; font-weight:600; position:relative; z-index:5;">
+        <div>9:41</div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <div style="display:flex; gap:2px; align-items:flex-end;">
+            <div style="width:3px; height:5px; border-radius:1px; background:#0B1020;"></div>
+            <div style="width:3px; height:8px; border-radius:1px; background:#0B1020;"></div>
+            <div style="width:3px; height:11px; border-radius:1px; background:#0B1020;"></div>
+          </div>
+          <div style="width:22px; height:11px; border-radius:3px; border:1.5px solid #0B1020; padding:1.5px;"><div style="width:70%; height:100%; border-radius:1px; background:#0B1020;"></div></div>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 1: ONBOARDING ============ -->
+      <sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="01 Onboarding" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:28px 24px 36px; display:flex; flex-direction:column; animation:fadeUp 0.3s ease;">
+          <div style="width:52px; height:52px; border-radius:17px; background:#0B1020; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:25px; font-weight:800; margin-top:40px;">D</div>
+          <div style="font-size:34px; font-weight:800; letter-spacing:-0.02em; line-height:1.12; margin-top:28px;">One app for<br>every dapp.</div>
+          <div style="font-size:15.5px; color:#667085; line-height:1.55; margin-top:14px; max-width:300px;">Use, create, and publish onchain apps with an AI design assistant. No wallets, chains, or contracts to think about.</div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:34px;">
+            <div style="background:#FFFFFF; border-radius:20px; padding:16px 12px; display:flex; flex-direction:column; gap:10px;">
+              <div style="width:34px; height:34px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">◯</div>
+              <div style="font-size:13px; font-weight:700; line-height:1.3;">Use dapps</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:20px; padding:16px 12px; display:flex; flex-direction:column; gap:10px;">
+              <div style="width:34px; height:34px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; color:#3450A1;">+</div>
+              <div style="font-size:13px; font-weight:700; line-height:1.3;">Create dapps</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:20px; padding:16px 12px; display:flex; flex-direction:column; gap:10px;">
+              <div style="width:34px; height:34px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">↑</div>
+              <div style="font-size:13px; font-weight:700; line-height:1.3;">Publish to the store</div>
+            </div>
+          </div>
+
+          <div style="flex:1;"></div>
+
+          <div onClick="{{ goHome }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:17px; text-align:center; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px;">
+            <div style="width:18px; height:18px; border-radius:50%; border:2px solid #FFFFFF; display:flex; align-items:center; justify-content:center; font-size:10px;">✓</div>
+            Start with World ID
+          </div>
+          <div onClick="{{ goStore }}" style="text-align:center; font-size:14.5px; font-weight:600; color:#667085; padding:16px 0 4px; cursor:pointer;">Explore first</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 2: HOME ============ -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="02 Home" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:14px 20px 110px; animation:fadeUp 0.3s ease;">
+
+          <!-- shared header -->
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div>
+              <div style="font-size:24px; font-weight:800; letter-spacing:-0.015em;">Good evening, William</div>
+              <div style="display:flex; gap:7px; margin-top:9px;">
+                <div style="background:#FFFFFF; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;"><span style="color:#667085; font-weight:600;">Balance</span> $128.40</div>
+                <div style="background:#DFF5E7; color:#1B7A45; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:5px;"><span style="font-size:10px;">✓</span> World</div>
+                <div onClick="{{ goProfile }}" style="background:#DCE7FF; color:#3450A1; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer;">william.eth</div>
+              </div>
+            </div>
+            <div onClick="{{ goProfile }}" style="width:44px; height:44px; border-radius:50%; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; cursor:pointer; flex:none; align-self:flex-start;">W</div>
+          </div>
+
+          <!-- ===== VARIANT A: Classic hub ===== -->
+          <sc-if value="{{ isVarA }}" hint-placeholder-val="{{ true }}">
+            <div data-screen-label="02 Home — Variant A">
+              <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:999px; padding:14px 18px; margin-top:16px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <div style="width:16px; height:16px; border-radius:50%; border:2px solid #9AA1B2;"></div>
+                <div style="font-size:14.5px; color:#9AA1B2;">Search dapps or ask for one…</div>
+              </div>
+
+              <div onClick="{{ goAssistant }}" style="background:#DCE7FF; border-radius:28px; padding:22px; margin-top:14px; cursor:pointer; position:relative; overflow:hidden;">
+                <div style="position:absolute; right:-30px; top:-30px; width:130px; height:130px; border-radius:50%; background:#C7D8FF;"></div>
+                <div style="position:relative;">
+                  <div style="font-size:20px; font-weight:800; color:#16204A; letter-spacing:-0.01em;">Create a dapp</div>
+                  <div style="font-size:13.5px; color:#3D4F8F; margin-top:5px; max-width:230px; line-height:1.45;">Describe an idea — the assistant designs, wires, and publishes it.</div>
+                  <div style="display:inline-flex; background:#000000; color:#FFFFFF; border-radius:12px; padding:10px 16px; font-size:13.5px; font-weight:700; margin-top:14px;">Open assistant</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:14px;">
+                <div onClick="{{ goDetail }}" style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">$</div>
+                  <div style="font-size:12px; font-weight:600;">Pay</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">⇄</div>
+                  <div style="font-size:12px; font-weight:600;">Swap</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#3450A1;">✓</div>
+                  <div style="font-size:12px; font-weight:600;">Vote</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">↑</div>
+                  <div style="font-size:12px; font-weight:600;">Fundraise</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#3450A1;">◎</div>
+                  <div style="font-size:12px; font-weight:600;">Members</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#3450A1;">✦</div>
+                  <div style="font-size:12px; font-weight:600;">Agents</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#3450A1;">▣</div>
+                  <div style="font-size:12px; font-weight:600;">Events</div>
+                </div>
+                <div onClick="{{ goStore }}" style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1; letter-spacing:1px;">···</div>
+                  <div style="font-size:12px; font-weight:600;">More</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px; margin-bottom:10px;">
+                <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em;">Recommended dapps</div>
+                <div onClick="{{ goStore }}" style="font-size:13px; font-weight:600; color:#3450A1; cursor:pointer;">See all</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2; line-height:1.35;">Finance</div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:15.5px; font-weight:700;">Split USDC Payment</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Collect from any chain</div>
+                  </div>
+                  <div style="flex:none; background:#000000; color:#FFFFFF; font-size:12px; font-weight:700; border-radius:999px; padding:7px 15px;">Open</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2; line-height:1.35;">Commu&shy;nity</div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:15.5px; font-weight:700;">DAO Vote Starter</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">One vote per verified human</div>
+                  </div>
+                  <div style="flex:none; background:#DFF5E7; color:#1B7A45; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">World ID gated</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2; line-height:1.35;">Agents</div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:15.5px; font-weight:700;">Research Agent Market</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Human-backed agent tools</div>
+                  </div>
+                  <div style="flex:none; background:#DCE7FF; color:#3450A1; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">ENS verified</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2; line-height:1.35;">Events</div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:15.5px; font-weight:700;">Ticket Claim</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Claim your event pass</div>
+                  </div>
+                  <div style="flex:none; background:#FFF4D6; color:#8A6A12; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">One per human</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== VARIANT B: Services first ===== -->
+          <sc-if value="{{ isVarB }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="02 Home — Variant B">
+              <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:999px; padding:14px 18px; margin-top:16px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <div style="width:16px; height:16px; border-radius:50%; border:2px solid #9AA1B2;"></div>
+                <div style="font-size:14.5px; color:#9AA1B2;">Search dapps or ask for one…</div>
+              </div>
+
+              <div style="background:#DCE7FF; border-radius:28px; padding:16px; margin-top:14px;">
+                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+                  <div onClick="{{ goDetail }}" style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:16px; font-weight:700; color:#3450A1;">$</div>
+                    <div style="font-size:11.5px; font-weight:600;">Pay</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:16px; font-weight:700; color:#3450A1;">⇄</div>
+                    <div style="font-size:11.5px; font-weight:600;">Swap</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:15px; font-weight:700; color:#3450A1;">✓</div>
+                    <div style="font-size:11.5px; font-weight:600;">Vote</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:16px; font-weight:700; color:#3450A1;">↑</div>
+                    <div style="font-size:11.5px; font-weight:600;">Fundraise</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:14px; font-weight:700; color:#3450A1;">◎</div>
+                    <div style="font-size:11.5px; font-weight:600;">Members</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:15px; font-weight:700; color:#3450A1;">✦</div>
+                    <div style="font-size:11.5px; font-weight:600;">Agents</div>
+                  </div>
+                  <div style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:14px; font-weight:700; color:#3450A1;">▣</div>
+                    <div style="font-size:11.5px; font-weight:600;">Events</div>
+                  </div>
+                  <div onClick="{{ goStore }}" style="background:#FFFFFF; border-radius:18px; padding:13px 4px 11px; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;">
+                    <div style="font-size:16px; font-weight:700; color:#3450A1; letter-spacing:1px;">···</div>
+                    <div style="font-size:11.5px; font-weight:600;">More</div>
+                  </div>
+                </div>
+                <div onClick="{{ goAssistant }}" style="background:#16204A; color:#FFFFFF; border-radius:16px; padding:14px 16px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                  <div>
+                    <div style="font-size:14px; font-weight:700;">Don’t see what you need?</div>
+                    <div style="font-size:12px; color:#B8C6F2; margin-top:2px;">Ask the assistant to build it</div>
+                  </div>
+                  <div style="font-size:18px;">→</div>
+                </div>
+              </div>
+
+              <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Featured</div>
+              <div style="display:flex; gap:10px; overflow-x:auto; margin:0 -20px; padding:0 20px 4px;">
+                <div onClick="{{ goDetail }}" style="background:#FFFFFF; border-radius:24px; padding:18px; width:230px; flex:none; cursor:pointer;">
+                  <div style="width:42px; height:42px; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;">SP</div>
+                  <div style="font-size:15.5px; font-weight:700; margin-top:12px;">Split USDC Payment</div>
+                  <div style="font-size:12.5px; color:#667085; margin-top:3px;">coffeeclub.creator.eth</div>
+                  <div style="display:flex; gap:5px; margin-top:12px;">
+                    <div style="background:#DCE7FF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">ENS</div>
+                    <div style="background:#DFF5E7; color:#1B7A45; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">✓ World</div>
+                  </div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:24px; padding:18px; width:230px; flex:none;">
+                  <div style="width:42px; height:42px; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;">DV</div>
+                  <div style="font-size:15.5px; font-weight:700; margin-top:12px;">DAO Vote Starter</div>
+                  <div style="font-size:12.5px; color:#667085; margin-top:3px;">govworks.creator.eth</div>
+                  <div style="display:flex; gap:5px; margin-top:12px;">
+                    <div style="background:#DCE7FF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">ENS</div>
+                    <div style="background:#FFF4D6; color:#8A6A12; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">Simulated</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:22px; margin-bottom:10px;">Recommended</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">Finance</div>
+                  <div style="flex:1;">
+                    <div style="font-size:15.5px; font-weight:700;">Hackathon Team Dues</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">hackdues.dappdock.eth</div>
+                  </div>
+                  <div style="flex:none; background:#000000; color:#FFFFFF; font-size:12px; font-weight:700; border-radius:999px; padding:7px 15px;">Open</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">Agents</div>
+                  <div style="flex:1;">
+                    <div style="font-size:15.5px; font-weight:700;">Research Agent Market</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Human-backed agent tools</div>
+                  </div>
+                  <div style="flex:none; background:#DCE7FF; color:#3450A1; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">ENS verified</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== VARIANT C: Assistant-led ===== -->
+          <sc-if value="{{ isVarC }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="02 Home — Variant C">
+              <div style="background:#DCE7FF; border-radius:28px; padding:22px; margin-top:16px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:#16204A; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">✦</div>
+                  <div style="font-size:12px; font-weight:700; color:#3D4F8F;">assistant.agent.dappdock.eth · human-backed</div>
+                </div>
+                <div style="font-size:21px; font-weight:800; color:#16204A; letter-spacing:-0.01em; margin-top:14px; line-height:1.25;">What do you want to do today?</div>
+                <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:16px; padding:14px 16px; margin-top:14px; font-size:14px; color:#9AA1B2; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                  Describe a task or an app idea…
+                  <div style="width:28px; height:28px; border-radius:50%; background:#000000; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:13px;">↑</div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:12px;">
+                  <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:600; color:#22305C; cursor:pointer;">Collect payments</div>
+                  <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:600; color:#22305C; cursor:pointer;">Start a vote</div>
+                  <div onClick="{{ goAssistant }}" style="background:#FFFFFF; border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:600; color:#22305C; cursor:pointer;">Event check-in</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:14px;">
+                <div onClick="{{ goDetail }}" style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">$</div>
+                  <div style="font-size:12px; font-weight:600;">Pay</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1;">⇄</div>
+                  <div style="font-size:12px; font-weight:600;">Swap</div>
+                </div>
+                <div style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#3450A1;">✦</div>
+                  <div style="font-size:12px; font-weight:600;">Agents</div>
+                </div>
+                <div onClick="{{ goStore }}" style="background:#FFFFFF; border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;">
+                  <div style="width:38px; height:38px; border-radius:50%; background:#DCE7FF; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#3450A1; letter-spacing:1px;">···</div>
+                  <div style="font-size:12px; font-weight:600;">More</div>
+                </div>
+              </div>
+
+              <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Picked for you</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">Finance</div>
+                  <div style="flex:1;">
+                    <div style="font-size:15.5px; font-weight:700;">Split USDC Payment</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Collect from any chain</div>
+                  </div>
+                  <div style="flex:none; background:#000000; color:#FFFFFF; font-size:12px; font-weight:700; border-radius:999px; padding:7px 15px;">Open</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+                  <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">Events</div>
+                  <div style="flex:1;">
+                    <div style="font-size:15.5px; font-weight:700;">Ticket Claim</div>
+                    <div style="font-size:13px; color:#667085; margin-top:2px;">Claim your event pass</div>
+                  </div>
+                  <div style="flex:none; background:#FFF4D6; color:#8A6A12; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">One per human</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 3: STORE ============ -->
+      <sc-if value="{{ isStore }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="03 Store" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:14px 20px 110px; animation:fadeUp 0.3s ease;">
+          <div style="font-size:28px; font-weight:800; letter-spacing:-0.015em;">Store</div>
+          <div style="background:#FFFFFF; border-radius:999px; padding:14px 18px; margin-top:14px; display:flex; align-items:center; gap:10px;">
+            <div style="width:16px; height:16px; border-radius:50%; border:2px solid #9AA1B2;"></div>
+            <div style="font-size:14.5px; color:#9AA1B2;">Search the store…</div>
+          </div>
+
+          <div style="display:flex; gap:7px; overflow-x:auto; margin:14px -20px 0; padding:0 20px;">
+            <div style="background:#0B1020; color:#FFFFFF; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:700; flex:none;">All</div>
+            <div style="background:#FFFFFF; color:#667085; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; flex:none;">Finance</div>
+            <div style="background:#FFFFFF; color:#667085; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; flex:none;">Community</div>
+            <div style="background:#FFFFFF; color:#667085; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; flex:none;">Agents</div>
+            <div style="background:#FFFFFF; color:#667085; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; flex:none;">Events</div>
+            <div style="background:#FFFFFF; color:#667085; border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; flex:none;">Tools</div>
+          </div>
+
+          <div style="display:flex; gap:10px; overflow-x:auto; margin:16px -20px 0; padding:0 20px 4px;">
+            <div onClick="{{ goDetail }}" style="background:#DCE7FF; border-radius:26px; padding:20px; width:250px; flex:none; cursor:pointer;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="width:44px; height:44px; border-radius:15px; background:#FFFFFF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;">HD</div>
+                <div style="background:#FFFFFF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:5px 10px;">Featured</div>
+              </div>
+              <div style="font-size:17px; font-weight:800; color:#16204A; margin-top:14px;">Hackathon Team Dues</div>
+              <div style="font-size:12.5px; color:#3D4F8F; margin-top:3px;">hackdues.dappdock.eth</div>
+              <div style="font-size:13px; color:#22305C; margin-top:9px; line-height:1.45;">Collect $5 USDC from teammates on any chain.</div>
+              <div style="display:flex; gap:5px; margin-top:13px;">
+                <div style="background:#FFFFFF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">ENS</div>
+                <div style="background:#FFFFFF; color:#1B7A45; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">✓ World</div>
+                <div style="background:#FFFFFF; color:#8A6A12; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">Simulated</div>
+              </div>
+            </div>
+            <div style="background:#DCE7FF; border-radius:26px; padding:20px; width:250px; flex:none;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="width:44px; height:44px; border-radius:15px; background:#FFFFFF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;">DV</div>
+                <div style="background:#FFFFFF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:5px 10px;">Featured</div>
+              </div>
+              <div style="font-size:17px; font-weight:800; color:#16204A; margin-top:14px;">DAO Vote Starter</div>
+              <div style="font-size:12.5px; color:#3D4F8F; margin-top:3px;">govworks.creator.eth</div>
+              <div style="font-size:13px; color:#22305C; margin-top:9px; line-height:1.45;">Launch a one-per-human vote in minutes.</div>
+              <div style="display:flex; gap:5px; margin-top:13px;">
+                <div style="background:#FFFFFF; color:#3450A1; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">ENS</div>
+                <div style="background:#FFFFFF; color:#1B7A45; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">✓ World</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Verified by humans</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+              <div style="width:44px; height:44px; flex:none; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">SP</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Split USDC Payment</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">coffeeclub.creator.eth · Collect from any chain</div>
+              </div>
+              <div style="flex:none; background:#000000; color:#FFFFFF; font-size:12px; font-weight:700; border-radius:999px; padding:7px 15px;">Open</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:44px; height:44px; flex:none; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">TC</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Ticket Claim</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">eventworks.creator.eth · One pass per human</div>
+              </div>
+              <div style="flex:none; background:#DFF5E7; color:#1B7A45; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">✓ World</div>
+            </div>
+          </div>
+
+          <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Built with agents</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:44px; height:44px; flex:none; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">RA</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Research Agent Market</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">labs.creator.eth · Human-backed agents</div>
+              </div>
+              <div style="flex:none; background:#DCE7FF; color:#3450A1; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">ENS verified</div>
+            </div>
+          </div>
+
+          <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Recently published</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+              <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">Just now</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Hackathon Team Dues</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">hackdues.dappdock.eth · by william.eth</div>
+              </div>
+              <div style="flex:none; background:#000000; color:#FFFFFF; font-size:12px; font-weight:700; border-radius:999px; padding:7px 15px;">Open</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:58px; flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9AA1B2;">2h ago</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Run Club Dues + Routes</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">runclub.dappdock.eth · by coach.eth</div>
+              </div>
+              <div style="flex:none; background:#FFF4D6; color:#8A6A12; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">Simulated</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 4: DAPP DETAIL ============ -->
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="04 Dapp detail" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:10px 20px 36px; animation:fadeUp 0.3s ease;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div onClick="{{ goStore }}" style="width:38px; height:38px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer;">←</div>
+            <div style="font-size:13px; font-weight:600; color:#667085;">View technical details</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px; margin-top:18px;">
+            <div style="width:64px; height:64px; border-radius:21px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:21px; font-weight:800; flex:none;">HD</div>
+            <div>
+              <div style="font-size:21px; font-weight:800; letter-spacing:-0.01em;">Hackathon Team Dues</div>
+              <div style="font-size:13px; color:#3450A1; font-weight:600; margin-top:3px;">hackdues.dappdock.eth · by william.eth</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;">
+            <div style="background:#DCE7FF; color:#3450A1; font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px;">ENS verified</div>
+            <div style="background:#DFF5E7; color:#1B7A45; font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px;">✓ World verified creator</div>
+            <div style="background:#FFF4D6; color:#8A6A12; font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px;">Flow simulated</div>
+            <div style="background:#F1F2F6; color:#667085; font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px;">Open source</div>
+          </div>
+
+          <div style="background:#FFFFFF; border-radius:22px; padding:18px; margin-top:16px;">
+            <div style="font-size:13px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase; font-size:11px;">What this dapp does</div>
+            <div style="font-size:14.5px; line-height:1.55; margin-top:8px; color:#22283C;">You pay <b>$5 USDC from any chain</b>, it lands in the team treasury at <b>team.eth</b>, and you’re marked as paid on the member list. That’s it.</div>
+          </div>
+
+          <div style="background:#FFFFFF; border-radius:22px; padding:18px; margin-top:10px; border:1.5px solid #DCE7FF;">
+            <div style="font-size:11px; font-weight:700; color:#3450A1; letter-spacing:0.05em; text-transform:uppercase;">Permissions requested</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <div style="width:20px; height:20px; border-radius:50%; background:#F1F2F6; color:#667085; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; margin-top:1px;">1</div>
+                <div style="font-size:14px; color:#22283C;">Read your wallet balance</div>
+              </div>
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <div style="width:20px; height:20px; border-radius:50%; background:#F1F2F6; color:#667085; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; margin-top:1px;">2</div>
+                <div style="font-size:14px; color:#22283C;">Route one USDC payment via LI.FI</div>
+              </div>
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <div style="width:20px; height:20px; border-radius:50%; background:#F1F2F6; color:#667085; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; margin-top:1px;">3</div>
+                <div style="font-size:14px; color:#22283C;">Save your proof of completion</div>
+              </div>
+            </div>
+            <div style="height:1px; background:#E5E7EB; margin:14px 0;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:13px; color:#667085;">Spending cap</div>
+              <div style="font-size:15px; font-weight:800;">$5.00</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <div style="font-size:13px; color:#667085;">Before execution</div>
+              <div style="font-size:13px; font-weight:700; color:#1B7A45;">You confirm first</div>
+            </div>
+          </div>
+
+          <div style="background:#FFFFFF; border-radius:22px; padding:18px; margin-top:10px;">
+            <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Workflow preview</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:13px; flex-wrap:wrap;">
+              <div style="background:#DCE7FF; color:#22305C; font-size:12px; font-weight:700; border-radius:999px; padding:7px 12px;">USDC, any chain</div>
+              <div style="color:#9AA1B2; font-size:13px;">→</div>
+              <div style="background:#DCE7FF; color:#22305C; font-size:12px; font-weight:700; border-radius:999px; padding:7px 12px;">LI.FI route</div>
+              <div style="color:#9AA1B2; font-size:13px;">→</div>
+              <div style="background:#DCE7FF; color:#22305C; font-size:12px; font-weight:700; border-radius:999px; padding:7px 12px;">team.eth</div>
+              <div style="color:#9AA1B2; font-size:13px;">→</div>
+              <div style="background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; border-radius:999px; padding:7px 12px;">Marked paid</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px; margin-top:14px; padding:0 4px;">
+            <div style="font-size:13.5px; font-weight:700;">★ 4.9</div>
+            <div style="font-size:13px; color:#667085;">128 runs · 42 verified reviews · one review per human</div>
+          </div>
+
+          <div onClick="{{ goRuntime }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:17px; text-align:center; font-size:16px; font-weight:700; cursor:pointer; margin-top:16px;">Run dapp</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 5: RUNTIME ============ -->
+      <sc-if value="{{ isRuntime }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="05 Dapp runtime" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:10px 20px 36px; display:flex; flex-direction:column; animation:fadeUp 0.3s ease;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div onClick="{{ goDetail }}" style="width:38px; height:38px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; flex:none;">←</div>
+            <div style="flex:1;">
+              <div style="font-size:16px; font-weight:800;">Team Dues Splitter</div>
+              <div style="font-size:12px; color:#3450A1; font-weight:600;">hackdues.dappdock.eth</div>
+            </div>
+            <div onClick="{{ goAssistant }}" style="background:#DCE7FF; color:#3450A1; font-size:11.5px; font-weight:700; border-radius:999px; padding:7px 12px; cursor:pointer; flex:none;">✦ Ask assistant</div>
+          </div>
+
+          <!-- form state -->
+          <sc-if value="{{ runForm }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; flex-direction:column; flex:1; margin-top:16px;">
+              <div style="background:#FFFFFF; border-radius:22px; padding:6px 18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #F1F2F6;">
+                  <div style="font-size:13.5px; color:#667085;">Amount</div>
+                  <div style="font-size:15px; font-weight:800;">$5 USDC</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #F1F2F6;">
+                  <div style="font-size:13.5px; color:#667085;">Pay from</div>
+                  <div style="font-size:14.5px; font-weight:700;">Any chain</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #F1F2F6;">
+                  <div style="font-size:13.5px; color:#667085;">Destination</div>
+                  <div style="font-size:14.5px; font-weight:700; color:#3450A1;">team.eth</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0;">
+                  <div style="font-size:13.5px; color:#667085;">Memo</div>
+                  <div style="font-size:14.5px; font-weight:600;">June hackathon dinner</div>
+                </div>
+              </div>
+
+              <div style="background:#DCE7FF; border-radius:18px; padding:15px 18px; margin-top:10px;">
+                <div style="font-size:13.5px; color:#22305C; line-height:1.5;"><b>Outcome:</b> you will pay $5 and join Team Dinner. One payment per verified human. You confirm before anything moves.</div>
+              </div>
+
+              <div style="flex:1;"></div>
+              <div onClick="{{ runPay }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:17px; text-align:center; font-size:16px; font-weight:700; cursor:pointer; margin-top:16px;">Pay and mark me as joined</div>
+            </div>
+          </sc-if>
+
+          <!-- processing state -->
+          <sc-if value="{{ runProcessing }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:20px;">
+              <div style="font-size:18px; font-weight:800;">Running your flow…</div>
+              <div style="font-size:13px; color:#667085; margin-top:4px;">LI.FI Composer · 4 steps · simulated before execution</div>
+              <div style="background:#FFFFFF; border-radius:22px; padding:20px 18px; margin-top:16px; display:flex; flex-direction:column; gap:18px;">
+                <sc-for list="{{ runSteps }}" as="step" hint-placeholder-count="4">
+                  <div style="display:flex; align-items:center; gap:13px;">
+                    <div style="{{ step.dotStyle }}">{{ step.mark }}</div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-size:14.5px; font-weight:700; color: {{ step.titleColor }};">{{ step.title }}</div>
+                      <div style="font-size:12px; color:#9AA1B2; margin-top:1px;">{{ step.sub }}</div>
+                    </div>
+                    <div style="font-size:11.5px; font-weight:700; flex:none; color: {{ step.statusColor }};">{{ step.statusLabel }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- done state -->
+          <sc-if value="{{ runDone }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; flex:1; align-items:center; justify-content:center; text-align:center; padding:0 14px;">
+              <div style="width:74px; height:74px; border-radius:50%; background:#DFF5E7; color:#1B7A45; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; animation:fadeUp 0.4s ease;">✓</div>
+              <div style="font-size:25px; font-weight:800; letter-spacing:-0.015em; margin-top:22px;">Done.</div>
+              <div style="font-size:15px; color:#667085; line-height:1.55; margin-top:10px; max-width:270px;">You paid <b style="color:#0B1020;">$5 USDC</b> and joined <b style="color:#0B1020;">Team Dinner</b>.</div>
+              <div style="font-size:13px; color:#3450A1; font-weight:600; margin-top:18px; cursor:pointer;">View flow details</div>
+              <div onClick="{{ goHome }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:16px 44px; font-size:15px; font-weight:700; cursor:pointer; margin-top:30px;">Back to home</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 6: CREATE ASSISTANT ============ -->
+      <sc-if value="{{ isAssistant }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="06 Create assistant" style="position:absolute; top:46px; bottom:0; left:0; right:0; display:flex; flex-direction:column; animation:fadeUp 0.3s ease;">
+          <div style="padding:10px 20px 0;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div onClick="{{ goHome }}" style="width:38px; height:38px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; flex:none;">←</div>
+              <div style="flex:1;">
+                <div style="font-size:16px; font-weight:800;">Create assistant</div>
+                <div style="font-size:12px; color:#3450A1; font-weight:600;">assistant.agent.dappdock.eth · human-backed</div>
+              </div>
+            </div>
+            <div style="display:flex; background:#EAECF2; border-radius:999px; padding:4px; margin-top:14px;">
+              <div onClick="{{ tabChat }}" style="{{ chatTabStyle }}">Chat</div>
+              <div onClick="{{ tabFlow }}" style="{{ flowTabStyle }}">Flow</div>
+            </div>
+          </div>
+
+          <!-- CHAT TAB -->
+          <sc-if value="{{ isChatTab }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1; overflow-y:auto; padding:18px 20px 100px; display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:flex-start;">
+                <div style="background:#FFFFFF; border-radius:18px 18px 18px 6px; padding:12px 16px; max-width:85%; font-size:14px; line-height:1.5; box-shadow:0 1px 2px rgba(11,16,32,0.05);">What dapp do you want to create?</div>
+              </div>
+
+              <sc-if value="{{ showChips }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-wrap:wrap; gap:7px; padding-left:4px;">
+                  <div onClick="{{ playChat }}" style="background:#DCE7FF; color:#22305C; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:700; cursor:pointer; animation:pulse 2.4s infinite;">Collect payments</div>
+                  <div style="background:#FFFFFF; color:#3D4663; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">Create a voting app</div>
+                  <div style="background:#FFFFFF; color:#3D4663; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">Token-gate a community</div>
+                  <div style="background:#FFFFFF; color:#3D4663; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">Event check-in</div>
+                  <div style="background:#FFFFFF; color:#3D4663; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">Build an agent tool</div>
+                  <div style="background:#FFFFFF; color:#3D4663; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">Start from scratch</div>
+                </div>
+              </sc-if>
+
+              <sc-for list="{{ messages }}" as="msg" hint-placeholder-count="1">
+                <div style="display:flex; flex-direction:column; gap:10px; animation:fadeUp 0.3s ease;">
+                  <div style="{{ msg.rowStyle }}">
+                    <div style="{{ msg.bubbleStyle }}">{{ msg.text }}</div>
+                  </div>
+                  <sc-if value="{{ msg.card }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FFFFFF; border-radius:24px; padding:18px; border:1.5px solid #DCE7FF; box-shadow:0 6px 20px rgba(52,80,161,0.08);">
+                      <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:46px; height:46px; border-radius:15px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; flex:none;">HD</div>
+                        <div>
+                          <div style="font-size:16px; font-weight:800;">Hackathon Team Dues</div>
+                          <div style="font-size:12px; color:#667085; margin-top:1px;">Collect $5 USDC · mark verified humans as paid</div>
+                        </div>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:7px; margin-top:14px;">
+                        <div style="background:#F5F6FA; border-radius:13px; padding:10px 13px; display:flex; justify-content:space-between; align-items:center;">
+                          <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Identity</div>
+                          <div style="font-size:12.5px; font-weight:700; color:#3450A1;">hackdues.dappdock.eth</div>
+                        </div>
+                        <div style="background:#F5F6FA; border-radius:13px; padding:10px 13px; display:flex; justify-content:space-between; align-items:center;">
+                          <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Workflow</div>
+                          <div style="font-size:12.5px; font-weight:700;">USDC any chain → team.eth</div>
+                        </div>
+                        <div style="background:#F5F6FA; border-radius:13px; padding:10px 13px; display:flex; justify-content:space-between; align-items:center;">
+                          <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Access</div>
+                          <div style="font-size:12.5px; font-weight:700; color:#1B7A45;">World ID required</div>
+                        </div>
+                      </div>
+                      <div onClick="{{ goPreview }}" style="background:#000000; color:#FFFFFF; border-radius:13px; padding:13px; text-align:center; font-size:14px; font-weight:700; cursor:pointer; margin-top:14px;">Open preview →</div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+
+              <sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; justify-content:flex-start;">
+                  <div style="background:#FFFFFF; border-radius:18px 18px 18px 6px; padding:14px 18px; display:flex; gap:5px; box-shadow:0 1px 2px rgba(11,16,32,0.05);">
+                    <div style="width:7px; height:7px; border-radius:50%; background:#9AA1B2; animation:blink 1.2s infinite;"></div>
+                    <div style="width:7px; height:7px; border-radius:50%; background:#9AA1B2; animation:blink 1.2s infinite 0.2s;"></div>
+                    <div style="width:7px; height:7px; border-radius:50%; background:#9AA1B2; animation:blink 1.2s infinite 0.4s;"></div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:14px 20px 26px; background:linear-gradient(to top, #F5F6FA 70%, rgba(245,246,250,0)); display:flex; gap:9px; align-items:center;">
+              <div onClick="{{ playChat }}" style="flex:1; background:#FFFFFF; border-radius:999px; padding:14px 18px; font-size:14px; color:#9AA1B2; cursor:pointer; box-shadow:0 2px 8px rgba(11,16,32,0.06);">Describe your dapp…</div>
+              <div onClick="{{ playChat }}" style="width:46px; height:46px; border-radius:50%; background:#000000; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer; flex:none;">↑</div>
+            </div>
+          </sc-if>
+
+          <!-- FLOW TAB -->
+          <sc-if value="{{ isFlowTab }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1; overflow-y:auto; padding:18px 20px 40px;">
+              <sc-if value="{{ hasGenerated }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <div style="font-size:12px; color:#667085;">LI.FI Composer flow · <b style="color:#1B7A45;">simulation passed</b></div>
+                  <div style="background:#FFFFFF; border-radius:22px; padding:20px 18px; margin-top:12px; display:flex; flex-direction:column; gap:0px;">
+                    <div style="display:flex; gap:13px;">
+                      <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div style="width:26px; height:26px; border-radius:50%; background:#DCE7FF; color:#3450A1; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;">1</div>
+                        <div style="width:2px; flex:1; background:#E5E7EB; margin:4px 0;"></div>
+                      </div>
+                      <div style="padding-bottom:18px;">
+                        <div style="font-size:14.5px; font-weight:700;">Source funds</div>
+                        <div style="font-size:12.5px; color:#667085; margin-top:2px;">$5 USDC from the payer’s wallet, any supported chain</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:13px;">
+                      <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div style="width:26px; height:26px; border-radius:50%; background:#DCE7FF; color:#3450A1; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;">2</div>
+                        <div style="width:2px; flex:1; background:#E5E7EB; margin:4px 0;"></div>
+                      </div>
+                      <div style="padding-bottom:18px;">
+                        <div style="font-size:14.5px; font-weight:700;">Route</div>
+                        <div style="font-size:12.5px; color:#667085; margin-top:2px;">LI.FI picks the best route to the treasury chain</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:13px;">
+                      <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div style="width:26px; height:26px; border-radius:50%; background:#DCE7FF; color:#3450A1; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;">3</div>
+                        <div style="width:2px; flex:1; background:#E5E7EB; margin:4px 0;"></div>
+                      </div>
+                      <div style="padding-bottom:18px;">
+                        <div style="font-size:14.5px; font-weight:700;">Settle</div>
+                        <div style="font-size:12.5px; color:#667085; margin-top:2px;">Funds land at team.eth treasury</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:13px;">
+                      <div style="width:26px; height:26px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+                      <div>
+                        <div style="font-size:14.5px; font-weight:700;">Mark paid</div>
+                        <div style="font-size:12.5px; color:#667085; margin-top:2px;">Verified human recorded on the member list</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="background:#DCE7FF; border-radius:18px; padding:14px 17px; margin-top:10px; font-size:13px; color:#22305C; line-height:1.5;"><b>Boundary:</b> the agent drafted and simulated this flow. Spending and publishing always require your confirmation.</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ notGenerated }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align:center; padding-top:90px;">
+                  <div style="width:58px; height:58px; border-radius:19px; background:#EAECF2; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; color:#9AA1B2;">✦</div>
+                  <div style="font-size:16px; font-weight:700; margin-top:16px;">No flow yet</div>
+                  <div style="font-size:13.5px; color:#667085; margin-top:6px;">Describe a dapp in the chat and the<br>assistant will compose one.</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 7: GENERATED PREVIEW ============ -->
+      <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="07 Generated dapp preview" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:10px 20px 36px; animation:fadeUp 0.3s ease;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div onClick="{{ goAssistant }}" style="width:38px; height:38px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; flex:none;">←</div>
+            <div style="font-size:16px; font-weight:800;">Generated dapp</div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div style="font-size:22px; font-weight:800; letter-spacing:-0.015em;">Hackathon Team Dues</div>
+            <div style="font-size:14px; color:#667085; line-height:1.5; margin-top:5px;">Collect $5 USDC from teammates, route funds to a shared treasury, and mark verified humans as paid.</div>
+          </div>
+
+          <!-- live preview frame -->
+          <div style="background:#DCE7FF; border-radius:28px; padding:18px; margin-top:16px;">
+            <div style="font-size:10.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#3D4F8F; margin-bottom:11px; display:flex; justify-content:space-between;"><span>Live preview</span><span>interactive</span></div>
+            <div style="background:#FFFFFF; border-radius:20px; padding:18px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:34px; height:34px; border-radius:11px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">HD</div>
+                <div style="font-size:14px; font-weight:800;">Team Dues</div>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #F1F2F6; margin-top:8px;">
+                <div style="font-size:12.5px; color:#667085;">Amount</div><div style="font-size:13px; font-weight:700;">$5 USDC</div>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:12px 0;">
+                <div style="font-size:12.5px; color:#667085;">Destination</div><div style="font-size:13px; font-weight:700; color:#3450A1;">team.eth</div>
+              </div>
+              <div style="background:#000000; color:#FFFFFF; border-radius:11px; padding:11px; text-align:center; font-size:13px; font-weight:700; margin-top:6px;">Pay dues</div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+            <div style="background:#FFFFFF; border-radius:18px; padding:15px 17px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Identity</div>
+              <div style="font-size:13px; font-weight:700; color:#3450A1;">hackdues.dappdock.eth</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:18px; padding:15px 17px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Workflow</div>
+              <div style="font-size:13px; font-weight:700;">USDC any chain → treasury</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:18px; padding:15px 17px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:11px; font-weight:700; color:#9AA1B2; letter-spacing:0.05em; text-transform:uppercase;">Access</div>
+              <div style="font-size:13px; font-weight:700; color:#1B7A45;">World ID required</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:16px;">
+            <div onClick="{{ goAssistant }}" style="flex:1; background:#FFFFFF; border-radius:14px; padding:14px; text-align:center; font-size:13.5px; font-weight:700; cursor:pointer; color:#3D4663;">Edit with assistant</div>
+            <div onClick="{{ goRuntime }}" style="flex:1; background:#FFFFFF; border-radius:14px; padding:14px; text-align:center; font-size:13.5px; font-weight:700; cursor:pointer; color:#3D4663;">Test dapp</div>
+          </div>
+          <div onClick="{{ goPublish }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:17px; text-align:center; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px;">Publish</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 8: PUBLISH CHECKLIST ============ -->
+      <sc-if value="{{ isPublish }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="08 Publish checklist" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:10px 20px 36px; display:flex; flex-direction:column; animation:fadeUp 0.3s ease;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div onClick="{{ goPreview }}" style="width:38px; height:38px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; flex:none;">←</div>
+            <div style="font-size:16px; font-weight:800;">Publish</div>
+          </div>
+
+          <div style="font-size:14px; color:#667085; line-height:1.5; margin-top:16px;">Everything below was checked automatically. Publishing requires your confirmation — the assistant can’t do it alone.</div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+              <div style="flex:1;">
+                <div style="font-size:15px; font-weight:700;">ENS name reserved</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">hackdues.dappdock.eth · metadata in text records</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+              <div style="flex:1;">
+                <div style="font-size:15px; font-weight:700;">World ID rule set</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">One verified human per payment</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+              <div style="flex:1;">
+                <div style="font-size:15px; font-weight:700;">LI.FI flow simulated</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">4 steps · simulation passed</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+              <div style="flex:1;">
+                <div style="font-size:15px; font-weight:700;">Permissions reviewed</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">$5 spending cap · confirmation required</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:#DFF5E7; color:#1B7A45; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+              <div style="flex:1;">
+                <div style="font-size:15px; font-weight:700;">Store listing ready</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">Finance / Community · 1 of 3 builder credits</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;"></div>
+          <div onClick="{{ goSuccess }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:17px; text-align:center; font-size:16px; font-weight:700; cursor:pointer; margin-top:16px;">Publish to DappDock</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 8b: SUCCESS ============ -->
+      <sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="08b Publish success" style="position:absolute; top:46px; bottom:0; left:0; right:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 36px; animation:fadeUp 0.35s ease;">
+          <div style="width:74px; height:74px; border-radius:50%; background:#DFF5E7; color:#1B7A45; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700;">✓</div>
+          <div style="font-size:31px; font-weight:800; letter-spacing:-0.02em; margin-top:26px;">Published.</div>
+          <div style="font-size:15px; color:#667085; line-height:1.6; margin-top:12px;">Your dapp is live at<br><b style="color:#3450A1;">hackdues.dappdock.eth</b></div>
+          <div onClick="{{ goStore }}" style="background:#000000; color:#FFFFFF; border-radius:16px; padding:16px 46px; font-size:15px; font-weight:700; cursor:pointer; margin-top:36px;">Open in store</div>
+          <div onClick="{{ goProfile }}" style="font-size:14px; font-weight:600; color:#667085; padding:16px 0; cursor:pointer;">View profile</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ SCREEN 9: PROFILE ============ -->
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="09 Profile / agent passport" style="position:absolute; top:46px; bottom:0; left:0; right:0; overflow-y:auto; padding:14px 20px 110px; animation:fadeUp 0.3s ease;">
+          <div style="display:flex; align-items:center; gap:15px;">
+            <div style="width:62px; height:62px; border-radius:50%; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:23px; font-weight:800; flex:none;">W</div>
+            <div>
+              <div style="font-size:21px; font-weight:800; letter-spacing:-0.01em;">william.eth</div>
+              <div style="display:flex; gap:6px; margin-top:6px;">
+                <div style="background:#DFF5E7; color:#1B7A45; border-radius:999px; padding:5px 11px; font-size:11px; font-weight:700;">✓ World verified</div>
+                <div style="background:#DCE7FF; color:#3450A1; border-radius:999px; padding:5px 11px; font-size:11px; font-weight:700;">Builder</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:18px;">
+            <div style="background:#FFFFFF; border-radius:18px; padding:14px; text-align:center;">
+              <div style="font-size:19px; font-weight:800;">2<span style="font-size:13px; color:#9AA1B2; font-weight:600;">/3</span></div>
+              <div style="font-size:11.5px; color:#667085; margin-top:3px;">Builder credits</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:18px; padding:14px; text-align:center;">
+              <div style="font-size:19px; font-weight:800;">1</div>
+              <div style="font-size:11.5px; color:#667085; margin-top:3px;">Published</div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:18px; padding:14px; text-align:center;">
+              <div style="font-size:19px; font-weight:800;">4.9</div>
+              <div style="font-size:11.5px; color:#667085; margin-top:3px;">Reputation</div>
+            </div>
+          </div>
+
+          <div style="font-size:17px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Created dapps</div>
+          <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+            <div style="width:44px; height:44px; flex:none; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">HD</div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:15.5px; font-weight:700;">Hackathon Team Dues</div>
+              <div style="font-size:12.5px; color:#667085; margin-top:2px;">hackdues.dappdock.eth · 128 runs</div>
+            </div>
+            <div style="flex:none; background:#DFF5E7; color:#1B7A45; font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 11px;">Live</div>
+          </div>
+
+          <div style="font-size:17px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Saved dapps</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div onClick="{{ goDetail }}" style="display:flex; align-items:center; gap:14px; background:#FFFFFF; border-radius:20px; padding:16px; cursor:pointer;">
+              <div style="width:44px; height:44px; flex:none; border-radius:14px; background:#DCE7FF; color:#3450A1; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">SP</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:15.5px; font-weight:700;">Split USDC Payment</div>
+                <div style="font-size:12.5px; color:#667085; margin-top:2px;">coffeeclub.creator.eth</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:17px; font-weight:800; letter-spacing:-0.01em; margin-top:24px; margin-bottom:10px;">Agent fleet</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; flex:none; border-radius:50%; background:#16204A; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:15px;">✦</div>
+                <div style="flex:1;">
+                  <div style="font-size:14.5px; font-weight:700;">design.agent.dappdock.eth</div>
+                  <div style="font-size:12px; color:#667085; margin-top:1px;">Human-backed by William</div>
+                </div>
+                <div style="background:#DFF5E7; color:#1B7A45; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">Active</div>
+              </div>
+              <div style="display:flex; gap:5px; margin-top:11px; flex-wrap:wrap;">
+                <div style="background:#F5F6FA; color:#3D4663; font-size:10.5px; font-weight:600; border-radius:999px; padding:4px 9px;">Can draft</div>
+                <div style="background:#F5F6FA; color:#3D4663; font-size:10.5px; font-weight:600; border-radius:999px; padding:4px 9px;">Can simulate</div>
+                <div style="background:#FBE9E7; color:#A14034; font-size:10.5px; font-weight:600; border-radius:999px; padding:4px 9px;">Cannot spend</div>
+              </div>
+            </div>
+            <div style="background:#FFFFFF; border-radius:20px; padding:16px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; flex:none; border-radius:50%; background:#16204A; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:15px;">✦</div>
+                <div style="flex:1;">
+                  <div style="font-size:14.5px; font-weight:700;">payments.agent.dappdock.eth</div>
+                  <div style="font-size:12px; color:#667085; margin-top:1px;">Human-backed by William</div>
+                </div>
+                <div style="background:#F1F2F6; color:#667085; font-size:10.5px; font-weight:700; border-radius:999px; padding:4px 9px;">Paused</div>
+              </div>
+              <div style="display:flex; gap:5px; margin-top:11px; flex-wrap:wrap;">
+                <div style="background:#F5F6FA; color:#3D4663; font-size:10.5px; font-weight:600; border-radius:999px; padding:4px 9px;">Can prepare flows</div>
+                <div style="background:#FBE9E7; color:#A14034; font-size:10.5px; font-weight:600; border-radius:999px; padding:4px 9px;">Spend needs approval</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ TAB BAR ============ -->
+      <sc-if value="{{ showTabBar }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; bottom:0; left:0; right:0; padding:10px 22px 24px; background:linear-gradient(to top, #F5F6FA 60%, rgba(245,246,250,0));">
+          <div style="background:#FFFFFF; border-radius:999px; padding:9px 26px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 8px 26px rgba(11,16,32,0.10);">
+            <div onClick="{{ goHome }}" style="display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; width:54px;">
+              <div style="width:18px; height:18px; border-radius:5px; border-width:2.5px; border-style:solid; border-color: {{ navHome }};"></div>
+              <div style="font-size:10.5px; font-weight:700; color: {{ navHome }};">Home</div>
+            </div>
+            <div onClick="{{ goStore }}" style="display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; width:54px;">
+              <div style="width:18px; height:18px; border-radius:50%; border-width:2.5px; border-style:solid; border-color: {{ navStore }};"></div>
+              <div style="font-size:10.5px; font-weight:700; color: {{ navStore }};">Store</div>
+            </div>
+            <div onClick="{{ goAssistant }}" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; width:54px; margin-top:-26px;">
+              <div style="width:52px; height:52px; border-radius:50%; background:#000000; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:600; box-shadow:0 8px 20px rgba(11,16,32,0.30);">+</div>
+              <div style="font-size:10.5px; font-weight:700; color:#9AA1B2; margin-top:4px;">Create</div>
+            </div>
+            <div onClick="{{ goProfile }}" style="display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; width:54px;">
+              <div style="width:18px; height:18px; border-radius:50% 50% 6px 6px; border-width:2.5px; border-style:solid; border-color: {{ navProfile }};"></div>
+              <div style="font-size:10.5px; font-weight:700; color: {{ navProfile }};">Profile</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'onboarding',
+    variant: 'A',
+    runState: 'form',
+    runStep: 0,
+    assistantTab: 'chat',
+    messages: [],
+    typing: false,
+    chatPlayed: false,
+  };
+
+  componentDidMount() { this.timers = this.timers || []; }
+  componentWillUnmount() { (this.timers || []).forEach(clearTimeout); }
+
+  t(fn, d) {
+    this.timers = this.timers || [];
+    this.timers.push(setTimeout(fn, d));
+  }
+
+  go(screen) { this.setState({ screen }); }
+
+  playChat() {
+    if (this.state.chatPlayed) return;
+    this.setState({ chatPlayed: true });
+    const push = (m) => this.setState((s) => ({ messages: s.messages.concat([m]), typing: false }));
+    this.t(() => push({ role: 'user', text: 'Create a dapp where my hackathon team can pay $5 USDC from any chain, route it to our treasury, and mark members as paid.' }), 350);
+    this.t(() => this.setState({ typing: true }), 1000);
+    this.t(() => push({ role: 'assistant', text: 'Got it — a team dues collector. Two quick things: who should be able to pay, and where should the funds land?' }), 2500);
+    this.t(() => push({ role: 'user', text: 'Verified teammates only. Send everything to team.eth.' }), 3900);
+    this.t(() => this.setState({ typing: true }), 4600);
+    this.t(() => push({ role: 'assistant', text: 'Done — I generated the app, its ENS identity, the LI.FI payment flow, and a World ID access rule. Review it below.', card: true }), 6600);
+  }
+
+  runPay() {
+    this.setState({ runState: 'processing', runStep: 0 });
+    [1, 2, 3, 4].forEach((i) => this.t(() => this.setState({ runStep: i }), 700 * i));
+    this.t(() => this.setState({ runState: 'done' }), 3600);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const nav = (k) => (s.screen === k ? '#0B1020' : '#9AA1B2');
+    const varChip = (on) => on
+      ? { background: '#0B1020', color: '#FFFFFF', borderRadius: '999px', padding: '7px 13px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }
+      : { background: '#F5F6FA', color: '#667085', borderRadius: '999px', padding: '7px 13px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' };
+    const segTab = (on) => on
+      ? { flex: 1, textAlign: 'center', background: '#FFFFFF', borderRadius: '999px', padding: '9px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 1px 3px rgba(11,16,32,0.08)' }
+      : { flex: 1, textAlign: 'center', borderRadius: '999px', padding: '9px', fontSize: '13.5px', fontWeight: 600, color: '#667085', cursor: 'pointer' };
+
+    const stepData = [
+      ['Source $5 USDC from your wallet', 'Any chain — no bridging needed by you'],
+      ['Route funds via LI.FI', 'Best route selected automatically'],
+      ['Settle to team.eth treasury', 'Single arrival transaction'],
+      ['Mark William as paid', 'Saved to the team member list'],
+    ];
+    const runSteps = stepData.map((pair, i) => {
+      const done = s.runStep > i;
+      const active = s.runStep === i;
+      return {
+        title: pair[0],
+        sub: pair[1],
+        mark: done ? '✓' : String(i + 1),
+        dotStyle: {
+          width: '26px', height: '26px', borderRadius: '50%', flex: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '12px', fontWeight: 700,
+          background: done ? '#2DA866' : active ? '#DCE7FF' : '#EDEFF4',
+          color: done ? '#FFFFFF' : active ? '#3450A1' : '#B9BFCC',
+          animation: active ? 'pulse 1.4s infinite' : 'none',
+        },
+        statusLabel: done ? 'Done' : active ? 'In progress' : 'Queued',
+        statusColor: done ? '#2DA866' : active ? '#3450A1' : '#9AA1B2',
+        titleColor: done || active ? '#0B1020' : '#9AA1B2',
+      };
+    });
+
+    const messages = s.messages.map((m) => ({
+      ...m,
+      rowStyle: { display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' },
+      bubbleStyle: m.role === 'user'
+        ? { background: '#0B1020', color: '#FFFFFF', borderRadius: '18px 18px 6px 18px', padding: '12px 16px', maxWidth: '82%', fontSize: '14px', lineHeight: '1.5' }
+        : { background: '#FFFFFF', color: '#0B1020', borderRadius: '18px 18px 18px 6px', padding: '12px 16px', maxWidth: '86%', fontSize: '14px', lineHeight: '1.5', boxShadow: '0 1px 2px rgba(11,16,32,0.05)' },
+    }));
+
+    const hasGenerated = s.messages.some((m) => m.card);
+
+    return {
+      isOnboarding: s.screen === 'onboarding',
+      isHome: s.screen === 'home',
+      isStore: s.screen === 'store',
+      isDetail: s.screen === 'detail',
+      isRuntime: s.screen === 'runtime',
+      isAssistant: s.screen === 'assistant',
+      isPreview: s.screen === 'preview',
+      isPublish: s.screen === 'publish',
+      isSuccess: s.screen === 'success',
+      isProfile: s.screen === 'profile',
+      showTabBar: s.screen === 'home' || s.screen === 'store' || s.screen === 'profile',
+
+      isVarA: s.variant === 'A',
+      isVarB: s.variant === 'B',
+      isVarC: s.variant === 'C',
+      varAStyle: varChip(s.variant === 'A'),
+      varBStyle: varChip(s.variant === 'B'),
+      varCStyle: varChip(s.variant === 'C'),
+      setVarA: () => this.setState({ variant: 'A', screen: 'home' }),
+      setVarB: () => this.setState({ variant: 'B', screen: 'home' }),
+      setVarC: () => this.setState({ variant: 'C', screen: 'home' }),
+
+      goOnboarding: () => this.go('onboarding'),
+      goHome: () => this.go('home'),
+      goStore: () => this.go('store'),
+      goDetail: () => this.go('detail'),
+      goRuntime: () => this.setState({ screen: 'runtime', runState: 'form', runStep: 0 }),
+      goAssistant: () => this.setState({ screen: 'assistant', assistantTab: 'chat' }),
+      goPreview: () => this.go('preview'),
+      goPublish: () => this.go('publish'),
+      goSuccess: () => this.go('success'),
+      goProfile: () => this.go('profile'),
+
+      tabChat: () => this.setState({ assistantTab: 'chat' }),
+      tabFlow: () => this.setState({ assistantTab: 'flow' }),
+      isChatTab: s.assistantTab === 'chat',
+      isFlowTab: s.assistantTab === 'flow',
+      chatTabStyle: segTab(s.assistantTab === 'chat'),
+      flowTabStyle: segTab(s.assistantTab === 'flow'),
+
+      playChat: () => this.playChat(),
+      showChips: !s.chatPlayed,
+      typing: s.typing,
+      hasGenerated,
+      notGenerated: !hasGenerated,
+      messages,
+
+      runPay: () => this.runPay(),
+      runForm: s.runState === 'form',
+      runProcessing: s.runState === 'processing',
+      runDone: s.runState === 'done',
+      runSteps,
+
+      navHome: nav('home'),
+      navStore: nav('store'),
+      navProfile: nav('profile'),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "name": "Hackathon Team Dues",
+  "ensName": "hackdues.dappdock.eth",
+  "creator": "william.eth",
+  "description": "Collect $5 USDC from verified teammates, route funds to a shared treasury, and mark members as paid.",
+  "category": "Finance",
+  "secondaryCategory": "Community",
+  "components": [
+    { "type": "amountInput", "token": "USDC", "default": "5", "locked": true },
+    { "type": "sourceChain", "value": "any" },
+    { "type": "recipient", "value": "team.eth" },
+    { "type": "memoInput", "default": "June hackathon dinner" },
+    { "type": "submitButton", "label": "Pay and mark me as joined" }
+  ],
+  "outcome": "You will pay $5 and join Team Dinner.",
+  "permissions": {
+    "plainEnglish": [
+      "Read your wallet balance",
+      "Route one USDC payment via LI.FI",
+      "Save your proof of completion"
+    ],
+    "spendingCap": "5 USDC",
+    "requiresConfirmation": true,
+    "requiresWorldId": true,
+    "worldPolicy": "one-payment-per-human"
+  },
+  "workflow": {
+    "provider": "LI.FI Composer",
+    "flowId": "flow_123",
+    "steps": [
+      { "id": "source", "label": "Source $5 USDC from your wallet", "detail": "Any chain — no bridging needed by you" },
+      { "id": "route", "label": "Route funds via LI.FI", "detail": "Best route selected automatically" },
+      { "id": "settle", "label": "Settle to team.eth treasury", "detail": "Single arrival transaction" },
+      { "id": "record", "label": "Mark payer as paid", "detail": "Saved to the team member list" }
+    ],
+    "simulated": true
+  },
+  "trust": {
+    "ensVerified": true,
+    "worldVerifiedCreator": true,
+    "simulated": true,
+    "openSource": true
+  },
+  "ensTextRecords": {
+    "dapp.manifest": "https://manifests.dappdock.example/hackdues.json",
+    "dapp.category": "Finance",
+    "dapp.version": "1.0.0",
+    "world.policy": "one-payment-per-human",
+    "lifi.flow": "flow_123"
+  },
+  "version": "1.0.0"
+}
