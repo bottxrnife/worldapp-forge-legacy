@@ -20,7 +20,7 @@ When you change architecture, add screens, wire integrations, fix bugs, or alter
 
 > **SDK note:** SDK 56 is **not** on Play/App Store as of 2026-06. Do not upgrade to SDK 56 unless the user explicitly wants dev builds or sideloaded Expo Go from expo.dev/go.
 
-**Sponsor tracks (exactly three — do not add a fourth blockchain integration):** **ENS** (`identity.ts` + `onchain.ts`, **pure viem via the Universal Resolver — no NameStone/third-party service**) is identity **and** on-chain storage (resolution, ENSIP-5 text records, ENSIP-25/26 agent identity); **World ID 4.0** (`verification.ts`) is proof-of-human / one-per-human; **LI.FI Composer** (`execution.ts` + `composer.ts`) is cross-chain USDC routing + composed onchain flows. The Anthropic agent is an AI feature, not a sponsor track. Every integration has a real keyed path and a non-failing simulated fallback — see §6.
+**Sponsor tracks (exactly three — do not add a fourth blockchain integration):** **ENS** (`identity.ts` + `onchain.ts`, **pure viem via the Universal Resolver — no NameStone/third-party service**) is identity **and** on-chain storage (resolution, ENSIP-5 text records, ENSIP-25/26 agent identity); **World** (`verification.ts` = World ID 4.0 proof-of-human/one-per-human → Track B; `server/agentkit` = real AgentKit x402 human-backed free-trial → Track A) ; **LI.FI Composer** (`execution.ts` + `composer.ts`) is cross-chain USDC routing + composed onchain flows. The Anthropic agent is an AI feature, not a sponsor track. Every integration has a real keyed path and a non-failing simulated fallback — see §6. Two Node services back the World tracks (`server/`), kept out of the Expo bundle.
 
 **On-chain by design:** the loyalty **punch count + points are read from ENS** (the `dappdock.loyalty` ENSIP-5 text record on the user's primary name) — a credential stored in ENS, not just on-device. See §6b.
 
@@ -150,8 +150,11 @@ dapp-dock/
 │       ├── loyalty.ts            # Tier ladder + points/pass aggregation helpers
 │       ├── notify.ts             # Optional local notifications (expo-notifications)
 │       ├── biometric.ts          # Optional spend gate (expo-local-authentication)
+│       ├── agentkit.ts           # Client view of the AgentKit server (plain HTTP; SDK stays server-side)
 │       └── links.ts              # Deep-link parsing + share-link builders
-├── server/                       # World ID 4.0 backend verifier (Track B: backend proof validation + UNIQUE nullifier)
+├── server/                       # Node services (NOT in the Expo bundle)
+│   ├── worldid-verify.mjs        # World ID 4.0 backend verifier (Track B: backend validation + UNIQUE nullifier)
+│   └── agentkit/                 # World AgentKit (Track A): x402 free-trial resource server + agent client
 ├── __tests__/                    # Jest unit tests (loyalty, manifest, links, onchain, store, composer)
 ├── .maestro/                     # Maestro e2e flows (8 journeys) + README
 ├── jest.config.js / jest.setup.js / babel.config.js  # test harness (jest-expo)
@@ -224,7 +227,8 @@ Tab bar (home, store, profile): center FAB → /scan; Create → /assistant; Pro
 | Env var | Service | Real behavior | No-key fallback |
 |---|---|---|---|
 | `EXPO_PUBLIC_ANTHROPIC_API_KEY` | `agent.ts` | Claude tool-calling agent | `assistant.ts` template generator; UI shows “template mode” |
-| `EXPO_PUBLIC_WORLD_APP_ID` (+ `_RP_ID`/`_ACTION`/`_ENV`/`_VERIFY_URL`) | `verification.ts` | World ID 4.0: Wallet Bridge → World App → **v4** `/api/v4/verify` (point `_VERIFY_URL` at your backend/contract for Track B) | Simulated verify (~1.4s) |
+| `EXPO_PUBLIC_WORLD_APP_ID` (+ `_RP_ID`/`_ACTION`/`_ENV`/`_VERIFY_URL`) | `verification.ts` | World ID 4.0: Wallet Bridge → World App → **v4** `/api/v4/verify` (point `_VERIFY_URL` at `server/worldid-verify.mjs` for Track B) | Simulated verify (~1.4s) |
+| `EXPO_PUBLIC_AGENTKIT_URL` | `agentkit.ts` → `server/agentkit` | **World AgentKit (Track A):** human-backed agent x402 free-trial (3 free uses, then pay). Real `@worldcoin/agentkit` runs server-side | App shows a labeled offline/simulated status |
 | `EXPO_PUBLIC_LIFI_API_KEY` (+ `LIFI_API_URL`, `LIFI_COMPOSER_URL`) | `execution.ts` + `composer.ts` | Cross-chain USDC routing **and** Composer (swap+deposit to a vault in one tx — `toToken`=vault on the open `/quote` API). Key only raises rate limits | Quotes still work unauthenticated; unfunded = validated route + timeline |
 | `EXPO_PUBLIC_ENS_DOMAIN` | `identity.ts` (publish/resolve) + `onchain.ts` (loyalty) | **Pure ENS via viem** — no third-party subname service. Namespace for dapp/agent identities; resolution, reverse names, ENSIP-5 text records, ENSIP-12 avatars, ENSIP-26 agent records all from L1 via the Universal Resolver. Loyalty read from each user's `dappdock.loyalty` text record | No key needed; loyalty falls back to local SecureStore cache when no record/primary name |
 | `EXPO_PUBLIC_ETH_RPC_URL` | `identity.ts` + `onchain.ts` | Mainnet ENS resolution + loyalty/agent text-record reads | Defaults to publicnode |
@@ -258,6 +262,7 @@ Tab bar (home, store, profile): center FAB → /scan; Create → /assistant; Pro
 | Save / earn (`autosave`) | vault-position identity | optional | **Composer: swap+deposit to a vault in one tx** |
 | Reviews | (authored credential) | **one-review-per-human** (nullifier) | — |
 | Design agent | **ENSIP-25/26 identity (`agent-context`)** | human-backed creator | drafts LI.FI/Composer flows |
+| Human-backed agent access | agent ENS identity | **AgentKit x402 free-trial (Track A) — World ID = human** | (paid capability settles USDC) |
 | Publish a dapp | **`label.<domain>` identity + manifest records** | verified creator | — |
 
 **Extending on-chain storage:** reuse the `onchain.ts` pattern — store a JSON blob in an ENSIP-5 text record and read it via viem `getEnsText` (Universal Resolver, CCIP-Read aware), never throw. To make writes first-class, set the record from a name the wallet owns (on-chain `setText`) or via a CCIP-Read offchain resolver / gateway you control — still pure ENS, no third-party API.
@@ -331,6 +336,21 @@ cp .env.example .env   # optional — app runs fully simulated without keys
 npx expo start --tunnel -c   # prefer tunnel for physical devices
 ```
 
+**Backend services (optional — for the World prize tracks).** Both are plain Node, isolated from the Expo bundle. Point the app at them via `.env` (use your LAN IP / tunnel for a physical phone), restart Expo with `-c`.
+
+```bash
+# Track B — World ID proof verification + UNIQUE nullifier (one-per-human)
+WORLD_VERIFY_TRUST=1 PORT=8788 node server/worldid-verify.mjs      # demo (no real creds)
+# real: WORLD_RP_ID=rp_… WORLD_APP_ID=app_… node server/worldid-verify.mjs
+#   → EXPO_PUBLIC_WORLD_VERIFY_URL=http://<host>:8788/verify
+
+# Track A — AgentKit x402 free-trial resource server (real @worldcoin/agentkit)
+cd server/agentkit && npm install && AGENT_PAYTO=0xYourTreasury npm run server   # :4021
+#   → EXPO_PUBLIC_AGENTKIT_URL=http://<host>:4021
+#   register the agent (unlocks free trial, prompts World App):
+#   npx @worldcoin/agentkit-cli register <agent-address>
+```
+
 **Native only (no web):** run on a device via **Expo Go** (scan the QR) or on the Mac via **Expo Orbit**. There is no `npm run web`. After tunnel starts, read `urlRandomness` from `.expo/settings.json` → `exp://<urlRandomness>-anonymous-8081.exp.direct`, or scan the QR from the terminal.
 
 **Common failures:**
@@ -377,7 +397,7 @@ maestro test .maestro/                                # optional, needs a runnin
 - No Privy/embedded smart-wallet — uses local burner key only (now with reveal/backup + `sendUsdc`).
 - No app backend for the store: it's Zustand + seeds. User-published listings, loyalty, activity, saved, reviews, red packets and contacts now **persist** across restarts (SecureStore); they are still per-device (no sync). (World ID verification *does* have a backend now — `server/worldid-verify.mjs` — for Track B; point `EXPO_PUBLIC_WORLD_VERIFY_URL` at it.)
 - Red-packet claim payout is recorded locally (no escrow contract) — World ID one-per-human and the share/claim UX are real; the LI.FI payout leg is simulated like other unfunded paths.
-- **World Track A (AgentKit) and Track D (ProveKit) are not integrated** — both are web/backend-or-Noir tech that doesn't fit the Expo Go RN client: AgentKit's `@worldcoin/human-in-the-loop-react` is a React **DOM** widget and its server SDK runs the agent loop with the RP signing key (our agent loop is client-side); ProveKit needs a Noir prover Hermes can't run. We target World **Track B** (+ **Track C** continuity) instead. The Profile agent fleet now resolves **real ENS identities** (ENSIP-25/26) but is not driven by the AgentKit SDK.
+- **World Track A (AgentKit) is integrated server-side** (`server/agentkit`, real `@worldcoin/agentkit` + x402 free-trial) — the SDK can't run in the Hermes/RN client, so it lives in Node and the app talks to it over HTTP (`src/services/agentkit.ts`). Remaining manual steps for the live free-trial: register the agent address in AgentBook via the World App (`@worldcoin/agentkit-cli register`) and fund for post-trial x402 payments. **Track D (ProveKit)** is still not attempted (needs a Noir prover Hermes can't run).
 - Category filter on Store doesn’t filter featured sections consistently for all edge cases.
 - Android-specific World ID / deep link testing not verified.
 - `EXPO_PUBLIC_ANTHROPIC_API_KEY` in client bundle (acceptable for hackathon; move to proxy for production).
@@ -411,6 +431,7 @@ maestro test .maestro/                                # optional, needs a runnin
 
 | Date | Author | Change |
 |---|---|---|
+| 2026-06-13 | Build agent | **World AgentKit (Track A) — real integration + both servers running.** Added `server/agentkit/` (isolated Node, own `package.json`/`node_modules`): a Hono **x402 resource server** guarded by `@worldcoin/agentkit` `createAgentkitHooks({ mode: { type: 'free-trial', uses: 3 } })` (`resource-server.mjs`) + a human-backed agent client via `createAgentkitClient().fetch()` (`agent.mjs`). Verified live: `/status` serves the free-trial config, `GET /agent/premium` returns **402** until the agent is AgentBook-registered (then 3 free uses), the World ID verifier enforces one-per-human. The AgentKit SDK is **never bundled** into the Expo app (confirmed via bundle grep) — the app reads the server over plain HTTP (`src/services/agentkit.ts` + `EXPO_PUBLIC_AGENTKIT_URL`) and Profile shows a "Human-backed agent · AgentKit" card with a "Run a human-backed task" action. Started both Node services (`worldid-verify.mjs` :8788, `agentkit` :4021). `tsc` + Jest 50/50 + iOS bundle clean. Remaining manual step for the live trial: `npx @worldcoin/agentkit-cli register <agent-address>` (World App). |
 | 2026-06-13 | Build agent | **Maximize prize coverage within the 3 sponsors.** Added more real integrations so the one project qualifies for multiple prizes per sponsor. **LI.FI:** assistant **Flow tab → Composer inspector** (`ComposerInspector` — op sequence swap→bridge→deposit, destination vault, LI.FI Diamond execution contract, "1 transaction" badge → *Best Composer Tooling*); runtime shows a vault + "bundled into one transaction" note (→ *Best UX*); already had *Most Innovative* + *Agentic Workflows*. **ENS:** the Profile **agent fleet now resolves live ENSIP-25/26 identities** (`getAgentProfile` per `*.agent.<domain>`: verified badge + on-chain `agent-context`) → *Best AI Agents*, alongside *Most Creative* (loyalty credential in text records) + the *Integrate* pool. **World:** target *Track B* (+ *Track C* continuity); **Track A (AgentKit) and Track D (ProveKit) are intentionally not attempted** — both need a web/backend agent runtime or a Noir prover that can't run in Expo Go (a token import would be the "just a wrapper" Track A disqualifies). `tsc` + Jest 50/50 + iOS bundle clean. |
 | 2026-06-13 | Build agent | **Testing + close sponsor-requirement gaps.** Ran the full suite green — `tsc --noEmit` clean, **Jest 50/50** (added `__tests__/composer.test.ts` + Composer cases in `manifest.test.ts`), iOS `expo export` clean. **ENS (anti-cosmetic):** the assistant header now shows the agent's **live** ENSIP-26 identity via `getAgentProfile(assistant.agent.<domain>)` (real Universal-Resolver lookup, no hard-coded label). **World ID Track B:** added `server/worldid-verify.mjs` — a zero-dependency Node backend that validates the proof against World's v4 endpoint and enforces a `UNIQUE (action, nullifier)` constraint (smoke-tested: 2nd identical nullifier → `duplicate_nullifier`); point `EXPO_PUBLIC_WORLD_VERIFY_URL` at it so verification is backend-side, not client-trusted. |
 | 2026-06-13 | Build agent | **Sponsor-doc compliance pass (ENS, World ID, LI.FI) — pushed in 3 increments.** Verified each integration against its official docs (world.org SKILL.md, docs.ens.domains/llms-full.txt, docs.li.fi Composer + llms.txt) and the ETHGlobal NY 2026 prize criteria. **(1) ENS — pure viem, dropped NameStone** (ENS is the sponsor track; no third-party subname service): resolution/reverse/text/avatar via the **Universal Resolver**; new **ENSIP-26** agent-record helpers (`getAgentContext`/`getAgentEndpoint`/`getAgentProfile`) for the design agent's identity; loyalty stays a read-through `dappdock.loyalty` text record (write path is the local cache, since the burner can't own the name). Removed `namestoneApiKey`/`hasEnsCreds`. **(2) LI.FI Composer (was just `/v1/quote` routing).** New `composer.ts`: a `/quote` with `toToken`=vault returns a Composer route (swap+deposit in ONE tx); `runFlow` delegates when `workflow.composer` is set; `simulate_composer_route` agent tool + `draft_dapp_manifest` composer target (Agentic Workflows track); seed `autosave.dappdock.eth`; Earn API vault discovery. **(3) World ID 4.0** — verify proofs against the **v4** `/api/v4/verify/{rp_id}` endpoint with the v4 body (was the legacy v2 flat body); `rp_id`/`environment`/`protocol_version`/configurable `verify_url` (Track B requires backend/contract validation — documented + wired). `tsc` + iOS bundle clean. Commits authored as `bottxrnife` via `commit-tree` (no co-author trailer), conventional `type:` + bullet format. |
@@ -429,4 +450,4 @@ maestro test .maestro/                                # optional, needs a runnin
 
 ---
 
-*Last reviewed against codebase: 2026-06-13 (SDK 54, native-only; pure-viem ENS + ENSIP-26, World ID 4.0 verify, LI.FI Composer).*
+*Last reviewed against codebase: 2026-06-13 (SDK 54, native-only; pure-viem ENS + ENSIP-26, World ID 4.0 verify + AgentKit free-trial, LI.FI Composer; Node services in `server/`).*
