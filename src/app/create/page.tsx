@@ -345,9 +345,7 @@ function CreatePageInner() {
                       storage: { ...active.draft!.storage, imageBlobId: blobId },
                     })
                   }
-                >
-                  <SparkArt ens={active.draft.ensName} category={active.draft.category} size={28} />
-                </ImageUploadSlot>
+                />
                 <div className="min-w-0 flex-1">
                   <p className="display truncate text-lg font-extrabold">{active.draft.name}</p>
                   <p className="truncate text-xs font-semibold text-brand-strong">{active.draft.ensName}</p>
@@ -356,7 +354,7 @@ function CreatePageInner() {
               </div>
               <p className="mt-2.5 text-sm text-muted">{active.draft.description}</p>
               <p className="mt-2 text-[11px] text-faint">
-                Open the editor to tap any text or price · use chat for bigger changes.
+                Tap + Add on the cover to upload a photo · open the editor to tweak text and prices.
               </p>
               <div className="mt-3.5 flex gap-2">
                 <button
@@ -445,7 +443,7 @@ function CreatePageInner() {
 
           <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-24 pt-4">
             <p className="mb-3 text-center text-[11px] font-semibold text-muted">
-              Tap underlined text or prices to edit · tap + on icons for Walrus photos
+              Tap + Add on any tile to upload photos · tap underlined text or prices to edit
             </p>
             <ManifestRunner
               manifest={active.draft}

@@ -55,9 +55,7 @@ function ItemThumb({
         rounded="rounded-xl"
         onUploaded={onUploaded}
         className={uploading ? "opacity-60" : ""}
-      >
-        <Icon name={itemIcon(it.name)} className="text-[var(--spark-accent,var(--color-brand))]" />
-      </ImageUploadSlot>
+      />
     );
   }
   if (it.imageBlobId) {

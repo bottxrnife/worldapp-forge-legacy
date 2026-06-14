@@ -2,7 +2,19 @@
 
 import { Icon } from "@/components/Icon";
 import { uploadImageToWalrus } from "@/lib/walrusClient";
-import { useState, type ChangeEvent, type ReactNode } from "react";
+import { useState, type ChangeEvent } from "react";
+
+/** Shared empty state — plus icon + “Add” label for every Walrus upload tile. */
+export function ImageAddPlaceholder({ busy, size = "md" }: { busy?: boolean; size?: "sm" | "md" }) {
+  const iconSize = size === "sm" ? 14 : 18;
+  const labelClass = size === "sm" ? "text-[8px]" : "text-[9px]";
+  return (
+    <span className="flex flex-col items-center gap-0.5 text-faint">
+      <Icon name="plus" size={iconSize} />
+      <span className={`${labelClass} font-bold`}>{busy ? "…" : "Add"}</span>
+    </span>
+  );
+}
 
 /** Tap-to-upload tile — stores bytes on Walrus via /api/upload. */
 export function ImageUploadSlot({
@@ -12,7 +24,6 @@ export function ImageUploadSlot({
   rounded = "rounded-2xl",
   onUploaded,
   className = "",
-  children,
 }: {
   blobId?: string;
   alt: string;
@@ -20,7 +31,6 @@ export function ImageUploadSlot({
   rounded?: string;
   onUploaded: (blobId: string) => void;
   className?: string;
-  children?: ReactNode;
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -50,12 +60,7 @@ export function ImageUploadSlot({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/api/blob/${blobId}`} alt={alt} className="h-full w-full object-cover" />
       ) : (
-        children ?? (
-          <span className="flex flex-col items-center gap-0.5 text-faint">
-            <Icon name="plus" size={18} />
-            <span className="text-[9px] font-bold">{busy ? "…" : "Add"}</span>
-          </span>
-        )
+        <ImageAddPlaceholder busy={busy} size={size <= 40 ? "sm" : "md"} />
       )}
       {busy && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-[10px] font-bold text-white">

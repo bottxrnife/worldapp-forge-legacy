@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import { ImageUploadSlot } from "@/components/ImageUploadSlot";
 import { WalrusProof } from "@/components/WalrusProof";
 import { Button, Card, Pill } from "@/components/ui";
@@ -165,9 +164,7 @@ export default function PublishPage() {
                       ),
                     })
                   }
-                >
-                  <Icon name="food" size={20} className="text-brand" />
-                </ImageUploadSlot>
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{it.name}</p>
                   <p className="text-xs text-muted">${it.priceUsd.toFixed(2)}</p>
