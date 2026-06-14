@@ -226,10 +226,6 @@ export default function CreatePage() {
             Chats
           </button>
           <h1 className="min-w-0 flex-1 truncate text-lg font-extrabold">{active?.title ?? "New chat"}</h1>
-          <button onClick={newChat} className="inline-flex items-center gap-1 rounded-full bg-wash px-3 py-2 text-sm font-bold text-blue-link">
-            <Icon name="plus" size={14} />
-            New
-          </button>
         </div>
 
         {active && active.messages.length === 0 && (

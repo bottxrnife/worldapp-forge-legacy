@@ -53,7 +53,7 @@ export default function AppRun() {
           type="button"
           aria-label={isPinned ? "Unpin from Home" : "Pin to Home"}
           onClick={togglePin}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-wash shadow-soft transition active:scale-90"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface/90 shadow-soft transition active:scale-90"
         >
           <Icon name="heart" size={20} solid={isPinned} className={isPinned ? "text-brand" : "text-faint"} />
         </button>

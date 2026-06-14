@@ -300,9 +300,9 @@ export default function Home() {
                       }}
                       aria-label={pinned ? `Unpin ${a.name} from Home` : `Pin ${a.name} to Home`}
                       aria-pressed={pinned}
-                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur"
+                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 shadow-soft backdrop-blur-sm transition active:scale-90"
                     >
-                      <Icon name="heart" size={18} solid={pinned} className={pinned ? "text-brand" : "text-white"} />
+                      <Icon name="heart" size={18} solid={pinned} className={pinned ? "text-brand" : "text-faint"} />
                     </button>
                     <SparkArt ens={a.ensName} category={a.category} size={48} />
                     <div className="mt-3 flex items-center gap-2">
