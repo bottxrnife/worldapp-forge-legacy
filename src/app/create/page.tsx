@@ -2,6 +2,7 @@
 
 import { FloatingNav, NAV_CLEARANCE } from "@/components/FloatingNav";
 import { Icon } from "@/components/Icon";
+import { ImageUploadSlot } from "@/components/ImageUploadSlot";
 import { ManifestRunner } from "@/components/ManifestRunner";
 import { SparkArt } from "@/components/SparkArt";
 import { Card, Pill } from "@/components/ui";
@@ -9,6 +10,7 @@ import { createConversation, deleteConversation, listConversations, saveConversa
 import type { DappManifest, ManifestComponent } from "@/lib/types";
 import { MiniKit } from "@worldcoin/minikit-js";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const CHIPS = [
@@ -63,6 +65,8 @@ function lastPreview(c: Conversation): string {
 }
 
 export default function CreatePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [convos, setConvos] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "chat">("list");
@@ -86,6 +90,27 @@ export default function CreatePage() {
     }
     setLoaded(true);
   }, []);
+
+  /** Open agent chat with a draft pulled from sessionStorage (Edit flow from a published Spark). */
+  useEffect(() => {
+    if (!loaded || searchParams.get("edit") !== "1") return;
+    const raw = sessionStorage.getItem("forge.draft");
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw) as DappManifest;
+      const c = createConversation();
+      c.draft = draft;
+      c.title = `Edit · ${draft.name}`;
+      saveConversation(c);
+      sessionStorage.removeItem("forge.draft");
+      setConvos(listConversations());
+      setActiveId(c.id);
+      setView("chat");
+      router.replace("/create");
+    } catch {
+      /* ignore */
+    }
+  }, [loaded, searchParams, router]);
 
   const active = convos.find((c) => c.id === activeId) ?? null;
 
@@ -121,6 +146,11 @@ export default function CreatePage() {
     e.preventDefault();
     deleteConversation(id);
     setConvos(listConversations());
+  }
+
+  function updateDraft(next: DappManifest) {
+    if (!active) return;
+    persist({ ...active, draft: next });
   }
 
   const send = async (text: string) => {
@@ -280,7 +310,20 @@ export default function CreatePage() {
           {active?.draft && (
             <Card className="rounded-3xl border-2 border-brand-soft">
               <div className="flex items-center gap-3.5">
-                <SparkArt ens={active.draft.ensName} category={active.draft.category} size={44} />
+                <ImageUploadSlot
+                  blobId={active.draft.storage?.imageBlobId}
+                  alt={active.draft.name}
+                  size={44}
+                  rounded="rounded-[14px]"
+                  onUploaded={(blobId) =>
+                    updateDraft({
+                      ...active.draft!,
+                      storage: { ...active.draft!.storage, imageBlobId: blobId },
+                    })
+                  }
+                >
+                  <SparkArt ens={active.draft.ensName} category={active.draft.category} size={28} />
+                </ImageUploadSlot>
                 <div className="min-w-0 flex-1">
                   <p className="display truncate text-lg font-extrabold">{active.draft.name}</p>
                   <p className="truncate text-xs font-semibold text-brand-strong">{active.draft.ensName}</p>
@@ -288,13 +331,22 @@ export default function CreatePage() {
                 {active.draft.permissions.requiresWorldId ? <Pill tone="green">Human-only</Pill> : <Pill>Open</Pill>}
               </div>
               <p className="mt-2.5 text-sm text-muted">{active.draft.description}</p>
-              <p className="mt-2 text-[11px] text-faint">Ask in chat to edit this Spark — e.g. “make it $10” or “add a memo”.</p>
+              <p className="mt-2 text-[11px] text-faint">
+                Tap the icon to upload a cover · ask in chat to edit — e.g. “make it $10” or “add a memo”.
+              </p>
               <div className="mt-3.5 flex gap-2">
                 <button
                   onClick={() => setPreview(true)}
                   className="flex-1 rounded-full bg-brand px-4 py-3 text-sm font-bold text-white shadow-pop active:scale-[0.98]"
                 >
                   Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => send("Help me revise this Spark — keep the same ENS name unless I ask to change it.")}
+                  className="rounded-full bg-wash px-4 py-3 text-sm font-bold text-ink active:scale-[0.98]"
+                >
+                  Edit
                 </button>
                 <Link
                   href="/publish"
@@ -359,7 +411,7 @@ export default function CreatePage() {
       {preview && active?.draft && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-bg">
           <div className="mx-auto min-h-full w-full max-w-md">
-            <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-divider-soft bg-bg/80 px-6 py-4 backdrop-blur-xl">
+            <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-divider-soft bg-bg px-6 py-4">
               <button onClick={() => setPreview(false)} aria-label="Close preview" className="shrink-0 text-xl leading-none text-muted active:scale-90">
                 ✕
               </button>
@@ -374,15 +426,15 @@ export default function CreatePage() {
             </div>
 
             <div className="px-5 pb-24 pt-4">
-              <div className="mb-4 flex items-center gap-3.5 rounded-3xl bg-wash p-4">
-                <SparkArt ens={active.draft.ensName} category={active.draft.category} size={44} />
-                <div className="min-w-0 flex-1">
-                  <p className="display truncate text-base font-extrabold">{active.draft.name}</p>
-                  <p className="truncate text-xs font-semibold text-brand-strong">{active.draft.ensName}</p>
-                  <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">{active.draft.description}</p>
-                </div>
-              </div>
-              <ManifestRunner manifest={active.draft} />
+              <p className="mb-3 text-center text-[11px] font-semibold text-muted">
+                Tap + on icons or menu photos to upload to Walrus
+              </p>
+              <ManifestRunner
+                manifest={active.draft}
+                compact
+                editable
+                onManifestChange={(m) => updateDraft(m)}
+              />
             </div>
           </div>
         </div>

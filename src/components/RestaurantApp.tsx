@@ -1,7 +1,9 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
+import { ImageUploadSlot } from "@/components/ImageUploadSlot";
 import { SparkCta, SparkShell } from "@/components/SparkShell";
+import { WalrusProof } from "@/components/WalrusProof";
 import { useAuth } from "@/lib/auth";
 import { payWorld } from "@/lib/pay";
 import { sparkTheme } from "@/lib/sparkTheme";
@@ -32,7 +34,31 @@ function itemIcon(name: string): string {
 }
 
 /** A menu item's thumbnail: its Walrus photo if set, else a monochrome icon tile. */
-function ItemThumb({ it }: { it: MenuItem }) {
+function ItemThumb({
+  it,
+  editable,
+  uploading,
+  onUploaded,
+}: {
+  it: MenuItem;
+  editable?: boolean;
+  uploading?: boolean;
+  onUploaded?: (blobId: string) => void;
+}) {
+  if (editable && onUploaded) {
+    return (
+      <ImageUploadSlot
+        blobId={it.imageBlobId}
+        alt={it.name}
+        size={48}
+        rounded="rounded-xl"
+        onUploaded={onUploaded}
+        className={uploading ? "opacity-60" : ""}
+      >
+        <Icon name={itemIcon(it.name)} className="text-[var(--spark-accent,var(--color-brand))]" />
+      </ImageUploadSlot>
+    );
+  }
   if (it.imageBlobId) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -51,7 +77,17 @@ function ItemThumb({ it }: { it: MenuItem }) {
  * A points-based ordering mini-app with Order / Rewards / History tabs and a
  * pickup confirmation, ported from the original DappDock RestaurantApp.
  */
-export function RestaurantApp({ manifest }: { manifest: DappManifest }) {
+export function RestaurantApp({
+  manifest,
+  compact,
+  editable,
+  onManifestChange,
+}: {
+  manifest: DappManifest;
+  compact?: boolean;
+  editable?: boolean;
+  onManifestChange?: (m: DappManifest) => void;
+}) {
   const ens = manifest.ensName;
   const theme = sparkTheme(manifest);
   const { user } = useAuth();
@@ -137,7 +173,20 @@ export function RestaurantApp({ manifest }: { manifest: DappManifest }) {
   }
 
   return (
-    <SparkShell manifest={manifest}>
+    <SparkShell
+      manifest={manifest}
+      compact={compact}
+      editable={editable}
+      onCoverImage={
+        editable && onManifestChange
+          ? (blobId) =>
+              onManifestChange({
+                ...manifest,
+                storage: { ...manifest.storage, imageBlobId: blobId },
+              })
+          : undefined
+      }
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[12px] font-bold uppercase tracking-wide" style={{ color: theme.accent }}>
@@ -184,7 +233,29 @@ export function RestaurantApp({ manifest }: { manifest: DappManifest }) {
               {group.map((it) => (
                 <div key={it.id} className="flex items-center justify-between gap-3 px-3 py-2.5" style={{ background: theme.soft, borderRadius: theme.radius }}>
                   <div className="flex min-w-0 items-center gap-3">
-                    <ItemThumb it={it} />
+                    <ItemThumb
+                      it={it}
+                      editable={editable}
+                      uploading={false}
+                      onUploaded={
+                        editable && onManifestChange
+                          ? (blobId) =>
+                              onManifestChange({
+                                ...manifest,
+                                components: manifest.components.map((c) =>
+                                  c.type === "menu"
+                                    ? {
+                                        ...c,
+                                        items: c.items.map((row) =>
+                                          row.id === it.id ? { ...row, imageBlobId: blobId } : row,
+                                        ),
+                                      }
+                                    : c,
+                                ),
+                              })
+                          : undefined
+                      }
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-bold">{it.name}</p>
                       <p className="text-[12px] text-muted">
@@ -343,6 +414,9 @@ export function RestaurantApp({ manifest }: { manifest: DappManifest }) {
             </button>
           </div>
         </div>
+      )}
+      {manifest.storage?.manifestBlobId && (
+        <WalrusProof blobId={manifest.storage.manifestBlobId} label="Walrus manifest" />
       )}
     </SparkShell>
   );

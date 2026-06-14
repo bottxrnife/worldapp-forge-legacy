@@ -39,6 +39,13 @@ export function deriveAmount(manifest: DappManifest, form: SparkFormState, fallb
   let derived = false;
 
   for (const c of manifest.components) {
+    if (c.type === "choiceGroup" && c.pricesAmount) {
+      const opt = c.options.find((o) => o.value === String(form[c.key]));
+      if (opt?.priceUsd != null) {
+        amount = opt.priceUsd;
+        derived = true;
+      }
+    }
     if (c.type === "durationPicker") {
       let rate = c.pricePerHourUsd;
       const zone = manifest.components.find(

@@ -22,18 +22,19 @@ export async function POST(req: Request) {
   const rpId = rp_id || process.env.WORLD_RP_ID;
   if (!rpId) return NextResponse.json({ success: false, error: "rp_id missing" }, { status: 400 });
 
+  const act = action || process.env.NEXT_PUBLIC_WORLD_ACTION || "verify-human";
+  const nullifier = extractNullifier(idkitResponse);
+
   const res = await fetch(`${VERIFY_BASE}/${rpId}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(idkitResponse),
   });
+  const detail = await res.text().catch(() => "");
   if (!res.ok) {
-    const detail = await res.text().catch(() => "");
     return NextResponse.json({ success: false, error: "Proof rejected", detail: detail.slice(0, 200) }, { status: 400 });
   }
 
-  const act = action || process.env.NEXT_PUBLIC_WORLD_ACTION || "verify-human";
-  const nullifier = extractNullifier(idkitResponse);
   if (nullifier) {
     if (isUsed(act, nullifier)) {
       return NextResponse.json({ success: false, code: "duplicate_nullifier" }, { status: 409 });

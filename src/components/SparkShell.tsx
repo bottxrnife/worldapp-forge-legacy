@@ -1,6 +1,7 @@
 "use client";
 
 import { SparkArt } from "@/components/SparkArt";
+import { ImageUploadSlot } from "@/components/ImageUploadSlot";
 import { sparkTheme, type SparkTheme } from "@/lib/sparkTheme";
 import type { DappManifest } from "@/lib/types";
 import type { CSSProperties, ReactNode } from "react";
@@ -9,10 +10,15 @@ export function SparkShell({
   manifest,
   children,
   compact,
+  editable,
+  onCoverImage,
 }: {
   manifest: DappManifest;
   children: ReactNode;
   compact?: boolean;
+  /** Preview / edit mode — tap the hero icon to upload a cover to Walrus. */
+  editable?: boolean;
+  onCoverImage?: (blobId: string) => void;
 }) {
   const theme = sparkTheme(manifest);
   const vars = {
@@ -24,13 +30,23 @@ export function SparkShell({
 
   return (
     <div className="flex flex-col gap-4" style={vars}>
-      {!compact && <SparkHero manifest={manifest} theme={theme} />}
+      {!compact && <SparkHero manifest={manifest} theme={theme} editable={editable} onCoverImage={onCoverImage} />}
       {children}
     </div>
   );
 }
 
-function SparkHero({ manifest, theme }: { manifest: DappManifest; theme: SparkTheme }) {
+function SparkHero({
+  manifest,
+  theme,
+  editable,
+  onCoverImage,
+}: {
+  manifest: DappManifest;
+  theme: SparkTheme;
+  editable?: boolean;
+  onCoverImage?: (blobId: string) => void;
+}) {
   const layoutClass =
     theme.layout === "meter"
       ? "min-h-[148px]"
@@ -63,7 +79,22 @@ function SparkHero({ manifest, theme }: { manifest: DappManifest; theme: SparkTh
             className="shrink-0 rounded-2xl p-0.5 shadow-pop"
             style={{ background: "rgba(255,255,255,0.25)" }}
           >
-            <SparkArt ens={manifest.ensName} category={manifest.category} size={52} />
+            {editable && onCoverImage ? (
+              <ImageUploadSlot
+                blobId={manifest.storage?.imageBlobId}
+                alt={`${manifest.name} icon`}
+                size={52}
+                rounded="rounded-2xl"
+                onUploaded={onCoverImage}
+              />
+            ) : (
+              <SparkArt
+                ens={manifest.ensName}
+                category={manifest.category}
+                size={52}
+                imageBlobId={manifest.storage?.imageBlobId}
+              />
+            )}
           </div>
           <div className="min-w-0 flex-1 pt-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/60">{manifest.category}</p>

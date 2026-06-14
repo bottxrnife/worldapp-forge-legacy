@@ -121,6 +121,15 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* Spark panels use pastel backgrounds — never pair global .text-muted with them in dark mode. */
+[data-spark-panel] .text-muted {
+  color: color-mix(in srgb, var(--spark-ink, var(--color-ink)) 68%, transparent);
+}
+
+[data-spark-panel] .text-faint {
+  color: color-mix(in srgb, var(--spark-ink, var(--color-ink)) 52%, transparent);
+}
+
 ::selection {
   background: var(--color-brand);
   color: #ffffff;

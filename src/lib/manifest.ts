@@ -29,6 +29,9 @@ const COMPONENT_TYPES = [
   "transitPass",
   "membershipCard",
   "savingsRound",
+  "supporterWall",
+  "capacityBar",
+  "countdown",
 ];
 const CATEGORIES = ["Finance", "Community", "Agents", "Events", "Tools"];
 
@@ -127,6 +130,12 @@ export function validateManifest(input: any, creator = "a human"): ValidationRes
     }
     if (c?.type === "tipPresets" && (!Array.isArray(c.presets) || c.presets.length < 1)) {
       errors.push("tipPresets needs at least one preset amount");
+    }
+    if (c?.type === "capacityBar" && (typeof c.capacity !== "number" || c.capacity <= 0)) {
+      errors.push("capacityBar needs a positive capacity");
+    }
+    if (c?.type === "countdown" && (!c.toIso || isNaN(Date.parse(c.toIso)))) {
+      errors.push("countdown needs a valid ISO timestamp (toIso)");
     }
   }
 

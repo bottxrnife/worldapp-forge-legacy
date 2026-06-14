@@ -3,7 +3,18 @@
 import { Icon } from "@/components/Icon";
 import type { SparkTheme } from "@/lib/sparkTheme";
 import type { ManifestComponent, SparkFormState } from "@/lib/types";
-import { getFundraiserRaised, getTransitBalance } from "@/lib/store";
+import {
+  addTransitRide,
+  getCredential,
+  getFundraiserRaised,
+  getSupporters,
+  getTransitBalance,
+  getTransitRides,
+  isUnlocked,
+  type Ride,
+  type Supporter,
+} from "@/lib/store";
+import { useEffect, useState } from "react";
 
 type Props = {
   component: ManifestComponent;
@@ -30,6 +41,9 @@ const INTERACTIVE = new Set([
   "transitPass",
   "membershipCard",
   "savingsRound",
+  "supporterWall",
+  "capacityBar",
+  "countdown",
 ]);
 
 export function isInteractiveComponent(type: string): boolean {
@@ -49,11 +63,13 @@ function Panel({
 }) {
   return (
     <div
+      data-spark-panel
       className={`p-4 ${className}`}
       style={{
         borderRadius: theme.radius,
         background: dark ? theme.ink : theme.soft,
-        color: dark ? "#fff" : undefined,
+        color: dark ? "#fff" : theme.ink,
+        ["--spark-ink" as string]: theme.ink,
       }}
     >
       {children}
@@ -96,6 +112,25 @@ export function SparkComponent({
             </li>
           ))}
         </ul>
+        {c.body && c.body.length > 0 && (
+          isUnlocked(ens) ? (
+            <div className="mt-3 border-t border-ink/10 pt-3">
+              {c.body.map((p, i) => (
+                <p key={i} className="mb-2 text-[13.5px] leading-relaxed" style={{ color: theme.ink }}>
+                  {p}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <div
+              className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[12px] font-semibold"
+              style={{ background: "var(--color-surface)", color: accent }}
+            >
+              <Icon name="unlock" size={14} />
+              Pay to unlock the full article
+            </div>
+          )
+        )}
       </Panel>
     );
   }
@@ -105,6 +140,7 @@ export function SparkComponent({
     const ballot = theme.layout === "ballot";
     const ticket = theme.layout === "ticket";
     const horizontal = theme.layout === "meter";
+    const agent = theme.layout === "agent";
 
     if (horizontal) {
       return (
@@ -143,16 +179,19 @@ export function SparkComponent({
           {ballot ? "Official ballot" : c.label}
         </p>
         <div className={`flex flex-col ${ticket ? "gap-0" : "gap-2"}`}>
-          {c.options.map((opt, i) => {
+          {c.options.map((opt) => {
             const active = selected === opt.value;
+            const locked = !!opt.locked;
+            const right = opt.priceUsd != null ? `$${opt.priceUsd}` : opt.hint;
             return (
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setField(c.key, opt.value)}
+                disabled={locked}
+                onClick={() => !locked && setField(c.key, opt.value)}
                 className={`flex items-center gap-3 text-left transition active:scale-[0.99] ${
                   ticket ? "border-b border-dashed border-ink/15 px-1 py-3 last:border-0" : "px-4 py-3"
-                }`}
+                } ${locked ? "cursor-not-allowed opacity-55" : ""}`}
                 style={{
                   borderRadius: ticket ? 0 : theme.radius,
                   background: active ? accent : "var(--color-surface)",
@@ -167,12 +206,25 @@ export function SparkComponent({
                     {active && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
                   </span>
                 )}
-                <span className="flex-1 text-[14px] font-semibold">{opt.label}</span>
-                {opt.hint && (
-                  <span className={`text-[12px] ${active ? "text-white/80" : "text-muted"}`}>{opt.hint}</span>
-                )}
-                {ticket && i === 0 && !active && (
-                  <span className="text-[10px] font-bold uppercase text-faint">Admit one</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14px] font-semibold">{opt.label}</span>
+                  {agent && (opt.ens || opt.rating != null) && (
+                    <span className={`mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] ${active ? "text-white/75" : "text-muted"}`}>
+                      {opt.ens && <span className="font-mono">{opt.ens}</span>}
+                      {opt.rating != null && (
+                        <span className="inline-flex items-center gap-1">
+                          <Icon name="star" solid size={10} />
+                          {opt.rating}
+                          {opt.runs != null ? ` · ${opt.runs} runs` : ""}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </span>
+                {right && (
+                  <span className={`shrink-0 text-[12.5px] font-bold ${active ? "text-white/85" : locked ? "text-faint" : "text-muted"}`}>
+                    {right}
+                  </span>
                 )}
               </button>
             );
@@ -466,45 +518,76 @@ export function SparkComponent({
   }
 
   if (c.type === "transitPass") {
-    const balance = getTransitBalance(ens) || c.balanceUsd || 0;
-    const topUp = Number(form.topUp ?? 0);
+    return <TransitPassView c={c} ens={ens} theme={theme} form={form} setField={setField} onAmountChange={onAmountChange} />;
+  }
+
+  if (c.type === "supporterWall") {
+    const supporters = getSupporters(ens);
+    const count = (c.baseSupporters ?? 0) + supporters.length;
     return (
-      <div
-        className="relative overflow-hidden p-5 text-white"
-        style={{ background: `linear-gradient(135deg, ${theme.ink} 0%, ${accent} 100%)`, borderRadius: theme.radius }}
-      >
-        <div className="absolute -right-6 top-1/2 h-24 w-24 -translate-y-1/2 rotate-12 rounded-xl bg-white/10" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/55">{c.label ?? "Transit pass"}</p>
-        <p className="display mt-1 font-mono text-[40px] font-extrabold leading-none">${balance.toFixed(2)}</p>
-        <div className="mt-3 h-1 w-full rounded-full bg-white/20">
-          <div className="h-full w-2/3 rounded-full bg-white/60" />
+      <Panel theme={theme}>
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[13px] font-bold" style={{ color: theme.ink }}>
+            {c.label ?? "Supporter wall"}
+          </p>
+          <span className="inline-flex items-center gap-1 text-[12px] font-bold" style={{ color: accent }}>
+            <Icon name="people" size={14} />
+            {count.toLocaleString()}
+          </span>
         </div>
-        <p className="mb-3 mt-4 text-[13px] font-semibold text-white/70">Quick top-up</p>
-        <div className="grid grid-cols-3 gap-2">
-          {c.presets.map((p) => {
-            const active = topUp === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => {
-                  setField("topUp", p);
-                  onAmountChange(p);
-                }}
-                className="py-2.5 text-[14px] font-bold transition"
-                style={{
-                  borderRadius: theme.radius,
-                  background: active ? "#fff" : "rgba(255,255,255,0.12)",
-                  color: active ? theme.ink : "#fff",
-                }}
-              >
-                +${p}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        {supporters.length === 0 ? (
+          <p className="text-[13px] text-muted">Be the first verified human to chip in.</p>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {supporters.slice(0, 5).map((s, i) => (
+              <div key={`${s.handle}-${i}`} className="flex items-center gap-2.5">
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                  style={{ background: accent }}
+                >
+                  {s.handle.replace(/\.eth$/, "").slice(0, 2).toUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-semibold" style={{ color: theme.ink }}>
+                  {s.handle}
+                </span>
+                <span className="shrink-0 text-[12px] font-bold text-muted">${s.amountUsd.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
     );
+  }
+
+  if (c.type === "capacityBar") {
+    const cred = getCredential(ens);
+    const mine = cred && (cred.kind === "rsvp" || cred.kind === "pass") ? cred.partySize ?? 1 : 0;
+    const filled = Math.min(c.capacity, (c.baseFilled ?? 0) + mine);
+    const pct = Math.round((filled / c.capacity) * 100);
+    const unit = c.unit ?? "spots";
+    const nearlyFull = pct >= 85;
+    return (
+      <Panel theme={theme}>
+        <div className="mb-2 flex items-end justify-between">
+          <p className="text-[13px] font-bold" style={{ color: theme.ink }}>
+            {c.label ?? "Capacity"}
+          </p>
+          <p className="text-[13px] font-bold" style={{ color: nearlyFull ? "var(--color-warn)" : accent }}>
+            {filled}/{c.capacity} {unit}
+          </p>
+        </div>
+        <div className="h-3 overflow-hidden rounded-full bg-surface">
+          <div className="h-full transition-all" style={{ width: `${pct}%`, background: nearlyFull ? "var(--color-warn)" : accent }} />
+        </div>
+        <p className="mt-2 text-[12px] text-muted">
+          {nearlyFull ? "Almost full — claim now" : `${c.capacity - filled} ${unit} left`}
+        </p>
+      </Panel>
+    );
+  }
+
+  if (c.type === "countdown") {
+    return <CountdownView theme={theme} label={c.label} toIso={c.toIso} />;
   }
 
   if (c.type === "membershipCard") {
@@ -565,4 +648,136 @@ export function SparkComponent({
   }
 
   return null;
+}
+
+/** Live countdown to an ISO timestamp (draw time, doors, ballot close). */
+function CountdownView({ theme, label, toIso }: { theme: SparkTheme; label?: string; toIso: string }) {
+  const target = Date.parse(toIso);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const ms = Math.max(0, target - now);
+  const day = Math.floor(ms / 86_400_000);
+  const hr = Math.floor((ms % 86_400_000) / 3_600_000);
+  const min = Math.floor((ms % 3_600_000) / 60_000);
+  const sec = Math.floor((ms % 60_000) / 1000);
+  const parts: [number, string][] = day > 0 ? [[day, "d"], [hr, "h"], [min, "m"]] : [[hr, "h"], [min, "m"], [sec, "s"]];
+  return (
+    <div className="flex items-center justify-between px-4 py-3" style={{ background: theme.soft, borderRadius: theme.radius }}>
+      <span className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: theme.ink }}>
+        <Icon name="bell" size={15} />
+        {label ?? "Closes in"}
+      </span>
+      {ms <= 0 ? (
+        <span className="text-[13px] font-bold text-muted">Closed</span>
+      ) : (
+        <span className="flex items-center gap-1.5">
+          {parts.map(([v, u], i) => (
+            <span key={i} className="flex flex-col items-center">
+              <span className="display text-[18px] font-extrabold leading-none" style={{ color: theme.accent }}>
+                {String(v).padStart(2, "0")}
+              </span>
+              <span className="text-[9px] font-bold uppercase text-faint">{u}</span>
+            </span>
+          ))}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Transit pass card: live balance, tap-to-ride history, low-balance nudge, top-up presets. */
+function TransitPassView({
+  c,
+  ens,
+  theme,
+  form,
+  setField,
+  onAmountChange,
+}: {
+  c: Extract<ManifestComponent, { type: "transitPass" }>;
+  ens: string;
+  theme: SparkTheme;
+  form: SparkFormState;
+  setField: (key: string, value: string | number) => void;
+  onAmountChange: (amount: number) => void;
+}) {
+  const accent = theme.accent;
+  const fare = c.fareUsd ?? 2.9;
+  const [balance, setBalance] = useState<number>(() => getTransitBalance(ens) || c.balanceUsd || 0);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const topUp = Number(form.topUp ?? 0);
+  useEffect(() => {
+    setBalance(getTransitBalance(ens) || c.balanceUsd || 0);
+    setRides(getTransitRides(ens));
+  }, [ens, c.balanceUsd]);
+  const low = balance < fare;
+  const ridesLeft = Math.floor(balance / fare);
+  const ref = Math.max(20, ...c.presets);
+  const pct = Math.min(100, Math.round((balance / ref) * 100));
+  function ride() {
+    if (balance < fare) return;
+    const r = addTransitRide(ens, fare);
+    setBalance(r.balance);
+    setRides(r.rides);
+  }
+  return (
+    <div
+      className="relative overflow-hidden p-5 text-white"
+      style={{ background: `linear-gradient(135deg, ${theme.ink} 0%, ${accent} 100%)`, borderRadius: theme.radius }}
+    >
+      <div className="absolute -right-6 top-1/2 h-24 w-24 -translate-y-1/2 rotate-12 rounded-xl bg-white/10" />
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/55">{c.label ?? "Transit pass"}</p>
+      <p className="display mt-1 font-mono text-[40px] font-extrabold leading-none">${balance.toFixed(2)}</p>
+      <p className="mt-1 text-[12px] font-semibold text-white/60">
+        ≈ {ridesLeft} ride{ridesLeft === 1 ? "" : "s"} left · ${fare.toFixed(2)}/ride
+      </p>
+      <div className="mt-3 h-1 w-full rounded-full bg-white/20">
+        <div className="h-full rounded-full bg-white/70 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      <button
+        type="button"
+        onClick={ride}
+        disabled={low}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-[14px] font-extrabold transition active:scale-[0.98] disabled:opacity-40"
+        style={{ color: theme.ink }}
+      >
+        <Icon name="train" size={16} /> Tap to ride · ${fare.toFixed(2)}
+      </button>
+      {low && <p className="mt-2 text-center text-[12px] font-semibold text-white/85">Low balance — top up to keep riding</p>}
+      {rides.length > 0 && (
+        <div className="mt-3 border-t border-white/15 pt-2">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-white/45">Recent rides</p>
+          {rides.slice(0, 3).map((r, i) => (
+            <div key={i} className="flex items-center justify-between py-0.5 text-[12px] text-white/70">
+              <span>{new Date(r.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+              <span className="font-semibold">−${r.fareUsd.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="mb-2 mt-4 text-[13px] font-semibold text-white/70">Quick top-up</p>
+      <div className="grid grid-cols-3 gap-2">
+        {c.presets.map((p) => {
+          const active = topUp === p;
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => {
+                setField("topUp", p);
+                onAmountChange(p);
+              }}
+              className="py-2.5 text-[14px] font-bold transition"
+              style={{ borderRadius: theme.radius, background: active ? "#fff" : "rgba(255,255,255,0.12)", color: active ? theme.ink : "#fff" }}
+            >
+              +${p}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

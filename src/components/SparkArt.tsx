@@ -12,12 +12,26 @@ export function SparkArt({
   category,
   size = 60,
   className = "",
+  imageBlobId,
 }: {
   ens: string;
   category?: string;
   size?: number;
   className?: string;
+  /** When set, show the Walrus photo instead of the generated glyph tile. */
+  imageBlobId?: string;
 }) {
+  if (imageBlobId) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/api/blob/${imageBlobId}`}
+        alt={ens}
+        className={`shrink-0 object-cover ${className}`}
+        style={{ width: size, height: size, borderRadius: Math.round(size * 0.3) }}
+      />
+    );
+  }
   const accent = appAccent(ens);
   const paths = ICON_PATHS[iconNameFor(ens, category)] ?? ICON_PATHS.spark;
   const inner = Math.round(size * 0.52);

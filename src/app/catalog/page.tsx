@@ -42,13 +42,15 @@ function SparkCard({ a, featured = false }: { a: AppRecord; featured?: boolean }
           className={`w-full ${featured ? "h-[140px] rounded-[22px]" : "h-[108px] rounded-2xl"}`}
           artSize={featured ? 112 : 80}
         />
+      </div>
+      <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        <p className={`truncate font-bold ${featured ? "text-[16px]" : "text-[14px]"}`}>{a.name}</p>
         {a.requiresWorldId && (
-          <span className="absolute left-2 top-2 rounded-full bg-cta/85 px-2 py-0.5 text-[9.5px] font-bold text-cta-text">
+          <span className="shrink-0 rounded-full bg-success-bg px-2 py-0.5 text-[9.5px] font-bold text-success">
             Human
           </span>
         )}
       </div>
-      <p className={`mt-3 truncate font-bold ${featured ? "text-[16px]" : "text-[14px]"}`}>{a.name}</p>
       <p className={`mt-1 line-clamp-2 text-muted ${featured ? "text-[13px]" : "text-[12px] leading-snug"}`}>
         {a.tagline ?? a.description}
       </p>

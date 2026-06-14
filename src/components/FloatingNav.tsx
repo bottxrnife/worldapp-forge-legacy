@@ -41,8 +41,25 @@ export function FloatingNav() {
   const router = useRouter();
   const createActive = pathname.startsWith("/create");
   const [mounted, setMounted] = useState(false);
+  /** Pin to the visual viewport bottom so iOS rubber-band scroll doesn't drag the bar. */
+  const [viewportOffset, setViewportOffset] = useState(0);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      setViewportOffset(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, []);
 
   const Tab = ({ href, label, d, on }: { href: string; label: string; d: string; on: boolean }) => (
     <Link href={href} className={`flex w-[56px] flex-col items-center gap-1 transition-colors ${on ? "text-brand" : "text-faint"}`}>
@@ -53,8 +70,15 @@ export function FloatingNav() {
 
   const bar = (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[9999] mx-auto max-w-md"
-      style={{ position: "fixed" }}
+      className="pointer-events-none fixed inset-x-0 z-[9999] mx-auto max-w-md"
+      style={{
+        position: "fixed",
+        bottom: viewportOffset,
+        left: 0,
+        right: 0,
+        transform: "translateZ(0)",
+        willChange: "transform",
+      }}
     >
       <div
         className="pointer-events-none bg-gradient-to-t from-bg via-bg/95 to-transparent px-5 pt-7"
@@ -65,14 +89,14 @@ export function FloatingNav() {
             <Tab key={t.href} href={t.href} label={t.label} d={t.d} on={t.match(pathname)} />
           ))}
 
-          {/* center Create FAB */}
+          {/* center Create FAB — stays inside the pill (no negative margin overlap) */}
           <button
             onClick={() => router.push("/create")}
-            className="-mt-7 flex w-[56px] flex-col items-center"
+            className="flex w-[56px] flex-col items-center"
             aria-label="Create"
           >
             <span
-              className={`flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-pop ${
+              className={`flex h-[46px] w-[46px] items-center justify-center rounded-full text-white shadow-pop ${
                 createActive ? "ring-2 ring-brand/40" : ""
               }`}
               style={{ background: "linear-gradient(135deg,#00b4ff,#0089e6)" }}

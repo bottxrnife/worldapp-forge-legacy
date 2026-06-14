@@ -3,7 +3,7 @@
 import { FloatingNav } from "@/components/FloatingNav";
 import { Icon } from "@/components/Icon";
 import { SparkArt } from "@/components/SparkArt";
-import { getActivity, getLoyalty, type ActivityEntry, type LoyaltyRecord } from "@/lib/store";
+import { getActivity, getDeliverables, getLoyalty, type ActivityEntry, type Deliverable, type LoyaltyRecord } from "@/lib/store";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -24,11 +24,13 @@ type SparkMeta = { name: string; category?: string };
 export default function ActivityPage() {
   const [loyalty, setLoyalty] = useState<Record<string, LoyaltyRecord>>({});
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [meta, setMeta] = useState<Record<string, SparkMeta>>({});
 
   useEffect(() => {
     setLoyalty(getLoyalty());
     setActivity(getActivity());
+    setDeliverables(getDeliverables());
     fetch("/api/catalog")
       .then((r) => r.json())
       .then((d) => {
@@ -102,6 +104,32 @@ export default function ActivityPage() {
               </div>
             ))}
           </div>
+        )}
+
+        {deliverables.length > 0 && (
+          <>
+            <h3 className="display mt-8 text-2xl font-extrabold">Deliverables</h3>
+            <div className="mt-3 flex flex-col gap-2.5">
+              {deliverables.map((d) => (
+                <Link
+                  key={d.id}
+                  href={`/deliverable/${d.id}`}
+                  className="flex items-center gap-3.5 rounded-3xl bg-wash p-3.5 transition active:scale-[0.98]"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+                    <Icon name="agent" size={22} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[15px] font-bold">{d.title}</p>
+                    <p className="truncate text-[13px] text-muted">
+                      {d.kind === "itinerary" ? "Itinerary" : "Research brief"} · {d.agentName}
+                    </p>
+                  </div>
+                  <Icon name="chevron-right" size={18} className="shrink-0 text-faint" />
+                </Link>
+              ))}
+            </div>
+          </>
         )}
 
         {passes.length > 0 && (

@@ -43,3 +43,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# hackathon / local reference docs (not part of the shipped app)
+ETHGLOBAL_NYC_2026_SPONSORS.md
+
+# local screenshots & captures
+Screenshot_*.jpg
+Screenshot_*.png
+screenshots/
+
+# Cursor IDE
+.cursor/
+
+# Claude local workspace
+.claude/
