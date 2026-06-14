@@ -35,6 +35,12 @@ export type AgentTurn = { history: ApiMessage[]; text: string; draft: DappManife
 
 const TOOLS = [
   {
+    name: "get_current_draft",
+    description:
+      "Return the Spark the user is currently editing (its manifest), or none. Call this first when the user asks to change/edit an existing Spark, then re-call draft_dapp_manifest with the full updated design.",
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
     name: "check_ens_subname",
     description: `Check whether a subname label is available under ${APP.ensDomain} for a new app identity.`,
     input_schema: {
@@ -95,9 +101,12 @@ Hard rules:
 - State the outcome before details. Permissions are 1-5 plain-English lines, never raw addresses.
 - You draft and check names only. You CANNOT spend or publish - the human confirms those.
 
-Method: ask at most one short clarifying question only if essential; otherwise check_ens_subname for a short label, then call draft_dapp_manifest, then reply with one short sentence that the app is ready to review below. Keep replies short and friendly. No markdown headers.`;
+Method: ask at most one short clarifying question only if essential; otherwise check_ens_subname for a short label, then call draft_dapp_manifest, then reply with one short sentence that the app is ready to review below. To EDIT an existing Spark, call get_current_draft first, then re-call draft_dapp_manifest with the FULL updated manifest (all fields, not just the change). Keep replies short and friendly. No markdown headers.`;
 
-async function runTool(name: string, input: Record<string, unknown>): Promise<string> {
+async function runTool(name: string, input: Record<string, unknown>, currentDraft: DappManifest | null): Promise<string> {
+  if (name === "get_current_draft") {
+    return JSON.stringify(currentDraft ? { draft: currentDraft } : { draft: null, note: "No Spark drafted yet." });
+  }
   if (name === "check_ens_subname") {
     const label = String(input.label ?? "").toLowerCase();
     const taken =
@@ -128,9 +137,14 @@ async function callAnthropic(messages: ApiMessage[]): Promise<{ content: Content
 }
 
 /** Run one user turn. Returns the updated history, the assistant text, and any draft. */
-export async function runAgentTurn(history: ApiMessage[], userText: string, creator: string): Promise<AgentTurn> {
+export async function runAgentTurn(
+  history: ApiMessage[],
+  userText: string,
+  creator: string,
+  currentDraft: DappManifest | null = null
+): Promise<AgentTurn> {
   if (!hasAgentCreds()) {
-    const draft = templateManifest(userText, creator);
+    const draft = templateManifest(userText, creator) ?? currentDraft;
     return {
       history,
       text: "Drafted with the built-in template engine (add a Claude API key or Claude Code to unlock the full agent). Review the app below.",
@@ -140,7 +154,7 @@ export async function runAgentTurn(history: ApiMessage[], userText: string, crea
   }
 
   const convo: ApiMessage[] = [...history, { role: "user", content: userText }];
-  let draft: DappManifest | null = null;
+  let draft: DappManifest | null = currentDraft;
   let text = "";
 
   for (let turn = 0; turn < 8; turn++) {
@@ -160,7 +174,7 @@ export async function runAgentTurn(history: ApiMessage[], userText: string, crea
 
     const results: ContentBlock[] = [];
     for (const use of toolUses) {
-      const output = await runTool(use.name, use.input).catch((e) => JSON.stringify({ error: String(e) }));
+      const output = await runTool(use.name, use.input, currentDraft).catch((e) => JSON.stringify({ error: String(e) }));
       results.push({ type: "tool_result", tool_use_id: use.id, content: output });
       if (use.name === "draft_dapp_manifest") {
         const v = validateManifest(use.input, creator);
