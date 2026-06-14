@@ -43,19 +43,20 @@ src/
 │   ├── globals.css          Tailwind v4 + design tokens (white + wash)
 │   ├── page.tsx             Home — World-App-style: sign-in, agent hero, Mini Apps grid, Featured
 │   ├── create/page.tsx      Design agent chat → draft card → preview/publish (composer floats above the bar)
-│   ├── catalog/page.tsx     Browse all apps (seeds + published)
-│   ├── app/[ens]/page.tsx   Run an app (ManifestRunner)
-│   ├── publish/page.tsx     Publish: writes manifest to Walrus, records ENS name
-│   ├── rewards/page.tsx     Rewards hub: total points, loyalty passes, activity
+│   ├── catalog/page.tsx     Sparks — Featured rail + category sections (vertical page + horizontal rails, Walrus cover images)
+│   ├── app/[ens]/page.tsx   Run an app (ManifestRunner; shows Walrus cover image)
+│   ├── publish/page.tsx     Publish: optional Walrus cover image + writes manifest to Walrus, records ENS name
+│   ├── activity/page.tsx    Activity feed (receipts) + total points + loyalty passes
 │   ├── profile/page.tsx     Sign-in state, World ID status, agent identity
 │   └── api/
 │       ├── nonce, complete-siwe       World sign-in (SIWE; verifySiweMessage)
 │       ├── rp-signature, verify-proof World ID (RP sign + v4 verify + nullifier store)
 │       ├── agent                      Anthropic tool-calling design agent
 │       ├── publish, catalog, app/[ens] Walrus write + catalog index
+│       ├── upload, blob/[id]          Walrus image upload (bytes) + read proxy (serves /api/blob/{id})
 │       └── pay-nonce                  reference id for MiniKit.pay
 ├── components/
-│   ├── FloatingNav.tsx      Floating oval tab bar (Home/Apps/Create FAB/Rewards/Profile)
+│   ├── FloatingNav.tsx      Floating oval tab bar (Home/Apps/Create FAB/Activity/Profile); truly fixed (own compositing layer)
 │   ├── ManifestRunner.tsx   Schema-driven runtime: components + pay + loyalty + ordering + done
 │   ├── VerifyButton.tsx     World ID gate (IDKit widget + simulated fallback)
 │   └── ui.tsx               Button, Card, Pill
@@ -65,7 +66,7 @@ src/
     ├── manifest.ts          validateManifest() — the schema gate
     ├── agent.ts             Anthropic loop + toolbelt (check_ens_subname, draft_dapp_manifest) + template fallback
     ├── ens.ts               viem ENS reads (resolve, reverse, text records)
-    ├── walrus.ts            Walrus HTTP store/read (publisher/aggregator)
+    ├── walrus.ts            Walrus HTTP store/read (publisher/aggregator): storeBlob (text), storeBytes (images), readBlob
     ├── catalog.ts           In-memory catalog index (seeds + published) + manifest cache
     ├── seeds.ts             8 built-in sample apps (build() helper)
     ├── appStyle.ts          per-app emoji + accent + tint
@@ -87,10 +88,10 @@ src/
   - **Ordering** — `menu` apps show a cart (steppers) → pay the total → earn points → **pickup code**.
   - **Editable inputs** — unlocked `amountInput` + `memoInput` are editable.
   - **World ID gate** — apps that require proof-of-human show a `VerifyButton` (IDKit) before the action.
-- **Publish** — writes the manifest JSON to **Walrus** (blob id), records the app under its **ENS** name in the catalog.
-- **Catalog** — browse all apps (8 seeds + anything published) with per-app icons.
-- **Rewards hub** — total points, your loyalty passes, and an activity/receipts feed (localStorage).
-- **Floating oval nav** — Home / Apps / center **Create FAB** / Rewards / Profile, visible on every tab.
+- **Publish** — optionally attach a **cover image** (uploaded to **Walrus** via `/api/upload`), writes the manifest JSON to **Walrus** (blob id), records the app under its **ENS** name in the catalog. Images are served back through `/api/blob/{id}` (aggregator proxy).
+- **Sparks (catalog)** — World-App-style browse: a **Featured** horizontal rail + per-category rails (vertical page scroll + horizontal rails), category chips, and Walrus cover images (fallback to per-app emoji/accent).
+- **Activity** — total points, your loyalty passes, and the activity/receipts feed (localStorage).
+- **Floating oval nav** — Home / Apps / center **Create FAB** / Activity / Profile, visible on every tab and **truly fixed** (own compositing layer so it doesn't drift on fast scroll).
 
 **Built-in sample apps (`seeds.ts`):** Team Dues, Cafe Punch Card, Split the Bill, DAO Vote, Community Raffle, Tip Jar, Corner Bistro (menu + points), Event RSVP.
 
@@ -102,7 +103,7 @@ src/
 
 **Component types:** `amountInput {token, default, locked?}`, `recipient {value}`, `memoInput {default}`, `punchCard {total, reward, pointsPerDollar}`, `menu {currency, items[], pointsPerDollar?}`, `submitButton {label}` (required).
 
-**Validation:** name/description/outcome required; `ensLabel` → `label.<ENS_DOMAIN>`; 1–5 plain-English permissions (no `0x` addresses); 2–6 workflow steps; `requiresConfirmation` always forced true; punchCard/menu shapes guarded.
+**Validation:** name/description/outcome required; `ensLabel` → `label.<ENS_DOMAIN>`; 1–5 plain-English permissions (no `0x` addresses); 2–6 workflow steps; `requiresConfirmation` always forced true; punchCard/menu shapes guarded. `storage` (`{ manifestBlobId?, imageBlobId? }`) is carried through validation — `imageBlobId` (a Walrus cover image) is set on publish and rendered on the catalog/run pages.
 
 **Adding a component type — touch all 3:** the `ManifestComponent` union in `types.ts`, `COMPONENT_TYPES` + per-type guard in `manifest.ts`, and the `draft_dapp_manifest` tool description + `SYSTEM_PROMPT` in `agent.ts`. Then render it in `ManifestRunner.tsx`.
 
@@ -116,7 +117,7 @@ src/
 | (same World wallet) | Payments | `MiniKit.pay` USDC on World Chain 480 (`lib/pay.ts`) | simulated settle |
 | `ANTHROPIC_API_KEY` **or** `ANTHROPIC_PROXY_URL` (+ `_PROXY_KEY`, `ANTHROPIC_MODEL`) | Agent | Anthropic Messages tool loop (server) | template generator |
 | `NEXT_PUBLIC_ENS_DOMAIN`, `ETH_RPC_URL` | ENS | viem mainnet reads (resolve/reverse/text records); apps named `label.<domain>` | public RPC; names recorded even if unresolved |
-| `WALRUS_PUBLISHER_URL`, `WALRUS_AGGREGATOR_URL` | Walrus | `PUT /v1/blobs` to store the manifest, `GET /v1/blobs/{id}` to read | publish still records locally if Walrus is down |
+| `WALRUS_PUBLISHER_URL`, `WALRUS_AGGREGATOR_URL` | Walrus | `PUT /v1/blobs` to store the manifest **and uploaded cover images** (`storeBytes` via `/api/upload`), `GET /v1/blobs/{id}` to read (images served through `/api/blob/{id}`) | publish still records locally + clear error if Walrus is down |
 
 **Live World ID app (created via the developer-portal MCP, team "dApp Dock"):** app `app_e642b84ff13c702c62e16c5997d27db5`, RP `rp_3c60d66756b89a0c` (registered on-chain), action `verify-human`. The Dev Portal app is in **mini-app** mode, named **Forge**. Set its **integration URL** to your deployed/tunnel URL before testing in World App.
 
@@ -168,6 +169,7 @@ In a desktop browser you get the full UI, the agent, Walrus publishing, and the 
 
 | Date | Author | Change |
 |---|---|---|
+| 2026-06-13 | Build agent (3 subagents) | **Sparks page + Walrus images + Activity + fixed nav.** (1) **Sparks (catalog)** rebuilt World-App-style: a **Featured** horizontal rail + per-category rails (vertical page + horizontal scroll) + category chips; `AppRecord` gained `imageBlobId`/`featured`. (2) **Walrus images now work end-to-end** — `walrus.storeBytes`, `POST /api/upload` (raw bytes, ≤5MB), `GET /api/blob/[id]` (aggregator read proxy); publish has an optional **cover image** picker; `validateManifest` + `/api/publish` preserve `storage.imageBlobId`; the image shows on the Sparks cards + run page + `ManifestRunner`. (3) **Rewards → Activity** (`/activity`): activity feed leads, plus total points + loyalty passes; old `/rewards` removed. (4) **FloatingNav**: Activity tab; bar is now **truly fixed** (`translateZ(0)` compositing layer, `z-50`) so it no longer drifts on fast scroll. `npm run build` clean; deployed to Vercel. |
 | 2026-06-13 | Build agent | **Ported workflow + floating oval nav + Rewards.** Floating oval tab bar (Home/Apps/center Create FAB/Rewards/Profile) visible on every tab; Create is no longer fullscreen (composer floats above the bar). Ported the working runtime: `MiniKit.pay` (USDC/World Chain) with simulated fallback (`lib/pay.ts`, `/api/pay-nonce`), punch-card stamping + points, `menu` ordering with a pickup code, activity receipts, and a Rewards hub backed by a `localStorage` store (`lib/store.ts`). Expanded to 8 built-in sample apps with per-app emoji/accent (`appStyle.ts`). Flipped the Developer Portal app to **mini-app** mode and renamed it **Forge** via the MCP. |
 | 2026-06-13 | Build agent | **Walrus storage + catalog + run loop.** `lib/walrus.ts` (HTTP publisher/aggregator), `lib/catalog.ts` index, and `/api/publish` `/api/catalog` `/api/app/[ens]` + the catalog/run pages. |
 | 2026-06-13 | Build agent | **World ID via IDKit 4.x.** RP-signature route, verify-proof route (v4 verifier + nullifier store), `VerifyButton`; the runtime gates runs behind proof-of-human. |
