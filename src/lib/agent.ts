@@ -274,7 +274,7 @@ Be proactive about choosing the right drafting tool:
 
 To edit or iterate (the user may say "make it cheaper", "add loyalty", "require World ID", "turn it into a menu", "rename it", "give me 3 variations", etc.): call get_current_draft first, then re-call draft_dapp_manifest with the FULL updated manifest - every field, not just the change (or draft_variations if they explicitly want options).
 
-Component patterns to assemble: amountInput + recipient (+ memoInput) + submitButton for payments; add a punchCard for loyalty; a menu (+ recipient) for ordering; submitButton alone with requiresWorldId + spendingCap "$0.00" for vote/raffle/RSVP/claim. Enrich with choiceGroup, durationPicker, stepper, tipPresets, splitBill, progressGoal, roundUp, infoCard, textArea, transitPass, membershipCard, or savingsRound when the Spark needs real inputs (parking zones, ballot options, trip briefs, etc.). Set requiresWorldId + a worldPolicy (one-payment-per-human, one-card-per-human, one-vote-per-human, one-entry-per-human, one-claim-per-human, one-membership-per-human) whenever it should be one-per-human.
+Component patterns to assemble: amountInput + recipient (+ memoInput) + submitButton for payments; add a punchCard for loyalty; a menu (+ recipient) for ordering; submitButton alone with requiresWorldId + spendingCap "$0.00" for vote/raffle/RSVP/claim. Enrich with choiceGroup, durationPicker, stepper, tipPresets, splitBill, progressGoal, roundUp, infoCard, textArea, transitPass, membershipCard, or savingsRound when the Spark needs real inputs (parking zones, ballot options, trip briefs, etc.). World ID gating: leave requiresWorldId FALSE by default — payments, loyalty, ordering, tips, fundraisers, parking/transit, article unlocks, and agent-hire are open and need no human check. Only set requiresWorldId true (with a worldPolicy like one-vote-per-human, one-entry-per-human, one-claim-per-human, one-membership-per-human) for apps whose whole point is one-per-human — votes, raffles, RSVP/ticket claims, memberships — or when the user explicitly asks to require it.
 
 Hard rules:
 - Payments settle in the user's World wallet on World Chain; never mention bridges or other chains.
@@ -469,8 +469,7 @@ function templateManifest(prompt: string, creator: string): DappManifest | null 
       permissions: {
         plainEnglish: ["Read your wallet balance", "Send one USDC payment"],
         spendingCap: `${amount} USDC`,
-        requiresWorldId: true,
-        worldPolicy: loyalty ? "one-card-per-human" : "one-payment-per-human",
+        requiresWorldId: false,
       },
       workflow: {
         steps: [
