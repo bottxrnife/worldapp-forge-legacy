@@ -5,6 +5,7 @@ import { ManifestRunner } from "@/components/ManifestRunner";
 import { SparkArt } from "@/components/SparkArt";
 import { Card, Pill } from "@/components/ui";
 import { createConversation, deleteConversation, listConversations, saveConversation, type Conversation } from "@/lib/conversations";
+import type { DappManifest, ManifestComponent } from "@/lib/types";
 import { MiniKit } from "@worldcoin/minikit-js";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -26,7 +27,24 @@ const VARIATIONS: Array<{ label: string; prompt: string }> = [
   { label: "Add a memo field", prompt: "Add a memo field so people can leave a short note." },
   { label: "Rename it", prompt: "Give it a fresh, catchier name (and matching ENS label)." },
   { label: "Make it free", prompt: "Make it free — remove the payment so it just claims." },
+  { label: "Give me 3 variations", prompt: "Give me 3 different variations of this Spark to choose from." },
 ];
+
+/** A one-line summary of what a variation contains, derived from its components. */
+function variationSummary(v: DappManifest): string {
+  const find = <T extends ManifestComponent["type"]>(t: T) =>
+    v.components.find((c) => c.type === t) as Extract<ManifestComponent, { type: T }> | undefined;
+  const parts: string[] = [];
+  if (find("menu")) parts.push("Menu ordering");
+  if (find("punchCard")) parts.push("Loyalty punch card");
+  const amt = find("amountInput");
+  if (amt) parts.push(amt.locked === false ? "Pay-what-you-want" : `$${amt.default} ${amt.token}`);
+  if (find("memoInput")) parts.push("Memo note");
+  if (parts.length === 0) parts.push("One-tap action");
+  const recipient = find("recipient");
+  if (recipient) parts.push(`pays ${recipient.value}`);
+  return parts.join(" · ");
+}
 
 function timeAgo(ts: number): string {
   const s = Math.floor((Date.now() - ts) / 1000);
@@ -74,6 +92,11 @@ export default function CreatePage() {
     saveConversation(updated);
     setConvos((prev) => [updated, ...prev.filter((c) => c.id !== updated.id)].sort((a, b) => b.updatedAt - a.updatedAt));
   }
+  function selectVariation(v: DappManifest) {
+    if (!active) return;
+    persist({ ...active, draft: v, drafts: null });
+    setPreview(false);
+  }
   function openChat(id: string) {
     setActiveId(id);
     setView("chat");
@@ -119,14 +142,18 @@ export default function CreatePage() {
       const msgs = [...afterUser.messages];
       if (turn.error) msgs.push({ role: "assistant" as const, text: `Something went wrong: ${turn.error}` });
       else if (turn.text) msgs.push({ role: "assistant" as const, text: turn.text });
+      const newDrafts = turn.drafts ?? null;
+      const newDraft = turn.draft ?? (newDrafts ? null : afterUser.draft);
       persist({
         ...afterUser,
         messages: msgs,
         apiHistory: turn.history ?? afterUser.apiHistory,
-        draft: turn.draft ?? afterUser.draft,
+        draft: newDraft,
+        drafts: newDrafts,
         updatedAt: Date.now(),
       });
       if (turn.draft) setPreview(false);
+      if (newDrafts) setPreview(false);
     } catch (e) {
       persist({ ...afterUser, messages: [...afterUser.messages, { role: "assistant", text: `Network error: ${String(e)}` }], updatedAt: Date.now() });
     } finally {
@@ -219,6 +246,34 @@ export default function CreatePage() {
             </div>
           ))}
           {busy && <p className="self-start text-sm text-muted">Designing…</p>}
+
+          {active?.drafts && active.drafts.length > 1 && !active.draft && (
+            <div className="flex flex-col gap-2.5">
+              <p className="display px-0.5 text-lg font-extrabold">Pick a variation</p>
+              {active.drafts.map((v, i) => (
+                <button
+                  key={`${v.ensName}-${i}`}
+                  onClick={() => selectVariation(v)}
+                  className="rounded-3xl bg-wash p-4 text-left shadow-soft active:scale-[0.99]"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <SparkArt ens={v.ensName} category={v.category} size={44} />
+                    <div className="min-w-0 flex-1">
+                      <p className="display truncate text-base font-extrabold">{v.name}</p>
+                      <p className="truncate text-xs font-semibold text-brand-strong">{v.ensName}</p>
+                    </div>
+                    {v.permissions.requiresWorldId ? <Pill tone="green">Human-only</Pill> : <Pill>Open</Pill>}
+                  </div>
+                  <p className="mt-2.5 text-sm text-muted">{v.description}</p>
+                  <p className="mt-1.5 text-[12px] font-medium text-faint">{variationSummary(v)}</p>
+                  <span className="mt-3 inline-flex rounded-full bg-brand px-4 py-2 text-sm font-bold text-white shadow-pop">
+                    Use this →
+                  </span>
+                </button>
+              ))}
+              <p className="px-0.5 text-[11px] text-faint">Pick one to preview, tweak, and publish — or keep chatting to refine.</p>
+            </div>
+          )}
 
           {active?.draft && (
             <Card className="rounded-3xl border-2 border-brand-soft">

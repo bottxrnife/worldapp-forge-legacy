@@ -16,6 +16,8 @@ export type Conversation = {
   messages: UiMsg[];
   apiHistory: ApiMessage[];
   draft: DappManifest | null;
+  /** Pending agent-proposed variations awaiting a pick; cleared once one is selected. */
+  drafts?: DappManifest[] | null;
 };
 
 const KEY = "forge.conversations";
@@ -52,7 +54,7 @@ export function createConversation(): Conversation {
       ? crypto.randomUUID().slice(0, 8)
       : Math.random().toString(36).slice(2, 10);
   const now = Date.now();
-  const convo: Conversation = { id, title: "New chat", createdAt: now, updatedAt: now, messages: [], apiHistory: [], draft: null };
+  const convo: Conversation = { id, title: "New chat", createdAt: now, updatedAt: now, messages: [], apiHistory: [], draft: null, drafts: null };
   writeAll([convo, ...readAll()]);
   return convo;
 }

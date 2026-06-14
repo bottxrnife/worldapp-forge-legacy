@@ -32,7 +32,13 @@ type ContentBlock =
   | { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean };
 
 export type ApiMessage = { role: "user" | "assistant"; content: ContentBlock[] | string };
-export type AgentTurn = { history: ApiMessage[]; text: string; draft: DappManifest | null; source: string };
+export type AgentTurn = {
+  history: ApiMessage[];
+  text: string;
+  draft: DappManifest | null;
+  drafts: DappManifest[] | null;
+  source: string;
+};
 
 /**
  * The hard-coded menu of everything this agent can assemble - surfaced verbatim
@@ -105,6 +111,48 @@ const CAPABILITIES = {
   ],
 } as const;
 
+/** The full manifest shape the agent drafts - shared by draft_dapp_manifest (one)
+ *  and draft_variations (an array of these) so both stay in lock-step. */
+const MANIFEST_INPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    ensLabel: { type: "string", description: `subname label under ${APP.ensDomain}` },
+    description: { type: "string" },
+    category: { type: "string", enum: ["Finance", "Community", "Agents", "Events", "Tools"] },
+    outcome: { type: "string", description: 'plain English, starts with "You will …"' },
+    components: {
+      type: "array",
+      description:
+        "The app's UI + actions, rendered in order. Component types: " +
+        'amountInput {token (e.g. "USDC"), default (amount string), locked? (true = fixed price, false/omit = user can edit)}; ' +
+        "recipient {value: an ENS name or 0x address that receives the payment}; " +
+        "memoInput {default: a user-editable note on the payment}; " +
+        "punchCard {total (stamps for the reward), reward, pointsPerDollar} - loyalty/stamp card; pair with amountInput + recipient so each paid run stamps it; " +
+        'menu {currency, items:[{id, name, priceUsd, desc?, tag? (section like "Mains"/"Drinks"), imageBlobId?}], pointsPerDollar?} - ordering; the cart total is the amount, pair with a recipient; ' +
+        "submitButton {label} - REQUIRED, include exactly one. " +
+        'Patterns: payment/dues = amountInput + recipient (+ memoInput) + submitButton; loyalty = punchCard + amountInput + recipient + submitButton; ordering = menu + recipient + submitButton; vote/raffle/RSVP/claim = submitButton only with requiresWorldId + spendingCap "$0.00".',
+      items: { type: "object" },
+    },
+    permissions: {
+      type: "object",
+      properties: {
+        plainEnglish: { type: "array", items: { type: "string" } },
+        spendingCap: { type: "string" },
+        requiresWorldId: { type: "boolean" },
+        worldPolicy: { type: "string" },
+      },
+      required: ["plainEnglish"],
+    },
+    workflow: {
+      type: "object",
+      properties: { steps: { type: "array", items: { type: "object" } } },
+      required: ["steps"],
+    },
+  },
+  required: ["name", "ensLabel", "description", "outcome", "components", "permissions", "workflow"],
+} as const;
+
 const TOOLS = [
   {
     name: "get_current_draft",
@@ -124,45 +172,25 @@ const TOOLS = [
   {
     name: "draft_dapp_manifest",
     description:
-      "Create or update the mini-app draft the human will review and publish. Validated against the Forge schema; on success a draft card is shown. Call once the design is settled. To iterate on an existing draft (cheaper price, add loyalty, require World ID, turn it into a menu, rename, etc.) re-call with the FULL updated manifest - every field, not just the change.",
+      "Create or update the mini-app draft the human will review and publish. Validated against the Forge schema; on success a draft card is shown. Call once the design is settled, for a SPECIFIC request or when editing an existing draft. To iterate on an existing draft (cheaper price, add loyalty, require World ID, turn it into a menu, rename, etc.) re-call with the FULL updated manifest - every field, not just the change.",
+    input_schema: MANIFEST_INPUT_SCHEMA,
+  },
+  {
+    name: "draft_variations",
+    description:
+      "Offer the user 2-3 DISTINCT variations of the Spark to choose from (e.g. different pricing models or component patterns). Each is the full manifest. Use this for open-ended requests; use draft_dapp_manifest for a single specific app or when editing an existing draft.",
     input_schema: {
       type: "object",
       properties: {
-        name: { type: "string" },
-        ensLabel: { type: "string", description: `subname label under ${APP.ensDomain}` },
-        description: { type: "string" },
-        category: { type: "string", enum: ["Finance", "Community", "Agents", "Events", "Tools"] },
-        outcome: { type: "string", description: 'plain English, starts with "You will …"' },
-        components: {
+        variations: {
           type: "array",
-          description:
-            "The app's UI + actions, rendered in order. Component types: " +
-            'amountInput {token (e.g. "USDC"), default (amount string), locked? (true = fixed price, false/omit = user can edit)}; ' +
-            "recipient {value: an ENS name or 0x address that receives the payment}; " +
-            "memoInput {default: a user-editable note on the payment}; " +
-            "punchCard {total (stamps for the reward), reward, pointsPerDollar} - loyalty/stamp card; pair with amountInput + recipient so each paid run stamps it; " +
-            'menu {currency, items:[{id, name, priceUsd, desc?, tag? (section like "Mains"/"Drinks"), imageBlobId?}], pointsPerDollar?} - ordering; the cart total is the amount, pair with a recipient; ' +
-            "submitButton {label} - REQUIRED, include exactly one. " +
-            'Patterns: payment/dues = amountInput + recipient (+ memoInput) + submitButton; loyalty = punchCard + amountInput + recipient + submitButton; ordering = menu + recipient + submitButton; vote/raffle/RSVP/claim = submitButton only with requiresWorldId + spendingCap "$0.00".',
-          items: { type: "object" },
-        },
-        permissions: {
-          type: "object",
-          properties: {
-            plainEnglish: { type: "array", items: { type: "string" } },
-            spendingCap: { type: "string" },
-            requiresWorldId: { type: "boolean" },
-            worldPolicy: { type: "string" },
-          },
-          required: ["plainEnglish"],
-        },
-        workflow: {
-          type: "object",
-          properties: { steps: { type: "array", items: { type: "object" } } },
-          required: ["steps"],
+          description: "2-3 genuinely different full manifests, each in the same shape draft_dapp_manifest accepts.",
+          minItems: 2,
+          maxItems: 3,
+          items: MANIFEST_INPUT_SCHEMA,
         },
       },
-      required: ["name", "ensLabel", "description", "outcome", "components", "permissions", "workflow"],
+      required: ["variations"],
     },
   },
   {
@@ -220,11 +248,14 @@ Tools for grounding & design:
 - list_sparks - the existing catalog, for inspiration and to avoid duplicate names/labels.
 - resolve_ens_name - verify a recipient the user names (e.g. "pay alice.eth") resolves to a real address before you use it.
 - suggest_labels + check_ens_subname - pick an available ENS label under ${APP.ensDomain} for a new app.
-- get_current_draft + draft_dapp_manifest - read and (re)write the design.
+- get_current_draft + draft_dapp_manifest - read and (re)write a single design.
+- draft_variations - offer 2-3 distinct full manifests at once for the user to pick from in the UI.
 
-Be proactive and offer variations. When a request is open-ended, propose 2-3 concrete directions in one short line and ask which they want - e.g. "Fixed price, pay-what-you-want, or with loyalty stamps?" - then build the chosen one. If the request is already specific, just build it.
+Be proactive about choosing the right drafting tool:
+- For OPEN-ENDED or vague requests (e.g. "make me a coffee shop app"), call draft_variations with 2-3 genuinely different takes (e.g. punch-card vs points-only menu vs a simple tip jar), then end with one short sentence inviting the user to pick one below.
+- For SPECIFIC requests, or when EDITING an existing draft, call draft_dapp_manifest (single).
 
-To edit or iterate (the user may say "make it cheaper", "add loyalty", "require World ID", "turn it into a menu", "rename it", etc.): call get_current_draft, then re-call draft_dapp_manifest with the FULL updated manifest - every field, not just the change.
+To edit or iterate (the user may say "make it cheaper", "add loyalty", "require World ID", "turn it into a menu", "rename it", "give me 3 variations", etc.): call get_current_draft first, then re-call draft_dapp_manifest with the FULL updated manifest - every field, not just the change (or draft_variations if they explicitly want options).
 
 Component patterns to assemble: amountInput + recipient (+ memoInput) + submitButton for payments; add a punchCard for loyalty; a menu (+ recipient) for ordering; submitButton alone with requiresWorldId + spendingCap "$0.00" for vote/raffle/RSVP/claim. Set requiresWorldId + a worldPolicy (one-payment-per-human, one-card-per-human, one-vote-per-human, one-entry-per-human, one-claim-per-human, one-membership-per-human) whenever it should be one-per-human.
 
@@ -233,7 +264,7 @@ Hard rules:
 - State the outcome before the details. Permissions are 1-5 plain-English lines, never raw addresses.
 - You draft and check names only. You CANNOT spend or publish - the human confirms those in the UI.
 
-Method: ask at most one short clarifying question only if essential (the variation choice counts). Ground with get_capabilities/list_sparks as needed, verify any named recipient with resolve_ens_name, pick a free label with suggest_labels/check_ens_subname, then call draft_dapp_manifest and reply with one short sentence that the app is ready to review below. Keep replies short and friendly. No markdown headers.`;
+Method: prefer draft_variations over clarifying questions when a request is open-ended; ask at most one short question only if truly essential. Ground with get_capabilities/list_sparks as needed, verify any named recipient with resolve_ens_name, pick free labels with suggest_labels/check_ens_subname, then call draft_variations (open-ended) or draft_dapp_manifest (specific/editing) and reply with one short sentence pointing at what's ready to review below. Keep replies short and friendly. No markdown headers.`;
 
 /** Availability check shared by check_ens_subname + suggest_labels: a label is
  *  taken if a seed Spark already uses it or it resolves on mainnet. */
@@ -289,6 +320,14 @@ async function runTool(name: string, input: Record<string, unknown>, currentDraf
     if (!v.ok) return JSON.stringify({ ok: false, errors: v.errors });
     return JSON.stringify({ ok: true, ensName: v.manifest.ensName, warnings: v.warnings });
   }
+  if (name === "draft_variations") {
+    const list = Array.isArray(input.variations) ? (input.variations as unknown[]) : [];
+    const variations = list.map((item, index) => {
+      const v = validateManifest(item);
+      return v.ok ? { index, ok: true, ensName: v.manifest.ensName } : { index, ok: false, errors: v.errors };
+    });
+    return JSON.stringify({ ok: true, count: variations.length, variations });
+  }
   return JSON.stringify({ error: `unknown tool ${name}` });
 }
 
@@ -319,12 +358,14 @@ export async function runAgentTurn(
       history,
       text: "Drafted with the built-in template engine (add a Claude API key or Claude Code to unlock the full agent). Review the app below.",
       draft,
+      drafts: null,
       source: "template",
     };
   }
 
   const convo: ApiMessage[] = [...history, { role: "user", content: userText }];
   let draft: DappManifest | null = currentDraft;
+  let drafts: DappManifest[] | null = null;
   let text = "";
 
   for (let turn = 0; turn < 8; turn++) {
@@ -348,13 +389,30 @@ export async function runAgentTurn(
       results.push({ type: "tool_result", tool_use_id: use.id, content: output });
       if (use.name === "draft_dapp_manifest") {
         const v = validateManifest(use.input, creator);
-        if (v.ok) draft = v.manifest;
+        if (v.ok) {
+          draft = v.manifest;
+          drafts = null; // a single (re)draft clears any stale variation picker
+        }
+      }
+      if (use.name === "draft_variations") {
+        const items = Array.isArray(use.input?.variations) ? (use.input.variations as unknown[]) : [];
+        const valid: DappManifest[] = [];
+        for (const item of items) {
+          const v = validateManifest(item, creator);
+          if (v.ok) valid.push(v.manifest);
+        }
+        if (valid.length >= 2) {
+          drafts = valid; // show the picker, not a single card
+          draft = null;
+        } else if (valid.length === 1) {
+          draft = valid[0]; // only one survived validation - fall back to a single draft
+        }
       }
     }
     convo.push({ role: "user", content: results });
   }
 
-  return { history: convo, text, draft, source: hasDirectKey() ? "Claude API" : "Claude Code" };
+  return { history: convo, text, draft, drafts, source: hasDirectKey() ? "Claude API" : "Claude Code" };
 }
 
 /** Deterministic fallback so the loop works with no model credential. */

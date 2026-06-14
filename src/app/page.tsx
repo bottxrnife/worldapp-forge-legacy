@@ -6,11 +6,63 @@ import { useAuth } from "@/lib/auth";
 import type { AppRecord } from "@/lib/catalog";
 import { APP } from "@/lib/config";
 import { getShortcuts, saveShortcuts } from "@/lib/homeShortcuts";
+import {
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 function ensLabel(ens: string) {
   return ens.split(".")[0];
+}
+
+function SortableSpark({
+  ens,
+  category,
+  name,
+  onRemove,
+}: {
+  ens: string;
+  category?: string;
+  name: string;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ens });
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div
+        ref={setNodeRef}
+        style={{ transform: CSS.Transform.toString(transform), transition, touchAction: "none" }}
+        {...attributes}
+        {...listeners}
+        className={`relative h-[60px] w-[60px] touch-none cursor-grab active:cursor-grabbing ${
+          isDragging ? "z-10 scale-105 opacity-60" : ""
+        }`}
+      >
+        <SparkArt ens={ens} category={category} size={60} className="ring-2 ring-brand/30" />
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          aria-label={`Remove ${name}`}
+          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-ink text-[11px] leading-none text-white shadow-card"
+        >
+          ✕
+        </button>
+      </div>
+      <span className="w-full truncate text-center text-[11px] font-medium">{name}</span>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -42,6 +94,11 @@ export default function Home() {
   const featured = apps.slice(0, 5);
   const available = apps.filter((a) => !order.includes(a.ensName));
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
+  );
+
   function persist(next: string[]) {
     setOrder(next);
     saveShortcuts(next);
@@ -49,12 +106,11 @@ export default function Home() {
   function removeAt(i: number) {
     persist(order.filter((_, idx) => idx !== i));
   }
-  function move(i: number, dir: -1 | 1) {
-    const j = i + dir;
-    if (j < 0 || j >= order.length) return;
-    const next = order.slice();
-    [next[i], next[j]] = [next[j], next[i]];
-    persist(next);
+  function onDragEnd(e: DragEndEvent) {
+    if (e.over && e.active.id !== e.over.id) {
+      const next = arrayMove(order, order.indexOf(String(e.active.id)), order.indexOf(String(e.over.id)));
+      persist(next);
+    }
   }
   function add(ens: string) {
     if (order.includes(ens)) return;
@@ -111,80 +167,78 @@ export default function Home() {
             {editing ? "Done" : "Edit"}
           </button>
         </div>
-        <div className="mt-3 grid grid-cols-4 gap-x-3 gap-y-4">
-          {/* Create — always first, never editable */}
-          <Link href="/create" className="flex flex-col items-center gap-1.5">
-            <div
-              className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] text-white shadow-pop"
-              style={{ background: "linear-gradient(135deg,#00b4ff,#0089e6)" }}
-            >
-              <span className="text-2xl">✨</span>
-            </div>
-            <span className="w-full truncate text-center text-[11px] font-medium">Create</span>
-          </Link>
+        {editing && <p className="mt-1.5 text-[12px] text-muted">Drag to reorder · tap ✕ to remove</p>}
 
-          {order.map((ens, i) => {
-            const rec = byEns.get(ens);
-            if (!editing) {
+        {editing ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={order} strategy={rectSortingStrategy}>
+              <div className="mt-3 grid grid-cols-4 gap-x-3 gap-y-4">
+                {/* Create — always first, never editable */}
+                <Link href="/create" className="flex flex-col items-center gap-1.5">
+                  <div
+                    className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] text-white shadow-pop"
+                    style={{ background: "linear-gradient(135deg,#00b4ff,#0089e6)" }}
+                  >
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <span className="w-full truncate text-center text-[11px] font-medium">Create</span>
+                </Link>
+
+                {order.map((ens, i) => {
+                  const rec = byEns.get(ens);
+                  return (
+                    <SortableSpark
+                      key={ens}
+                      ens={ens}
+                      category={rec?.category}
+                      name={rec?.name ?? ensLabel(ens)}
+                      onRemove={() => removeAt(i)}
+                    />
+                  );
+                })}
+
+                {/* trailing tile: Add */}
+                <button onClick={() => setShowAdd(true)} className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] border-2 border-dashed border-brand/40 text-brand">
+                    <span className="text-2xl">＋</span>
+                  </div>
+                  <span className="w-full truncate text-center text-[11px] font-medium text-brand">Add</span>
+                </button>
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="mt-3 grid grid-cols-4 gap-x-3 gap-y-4">
+            {/* Create — always first, never editable */}
+            <Link href="/create" className="flex flex-col items-center gap-1.5">
+              <div
+                className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] text-white shadow-pop"
+                style={{ background: "linear-gradient(135deg,#00b4ff,#0089e6)" }}
+              >
+                <span className="text-2xl">✨</span>
+              </div>
+              <span className="w-full truncate text-center text-[11px] font-medium">Create</span>
+            </Link>
+
+            {order.map((ens) => {
+              const rec = byEns.get(ens);
               return (
                 <Link key={ens} href={`/app/${encodeURIComponent(ens)}`} className="flex flex-col items-center gap-1.5">
                   <SparkArt ens={ens} category={rec?.category} size={60} />
                   <span className="w-full truncate text-center text-[11px] font-medium">{rec?.name ?? ensLabel(ens)}</span>
                 </Link>
               );
-            }
-            return (
-              <div key={ens} className="flex flex-col items-center gap-1.5">
-                <div className="relative h-[60px] w-[60px]">
-                  <SparkArt ens={ens} category={rec?.category} size={60} className="ring-2 ring-brand/30" />
-                  <button
-                    onClick={() => removeAt(i)}
-                    aria-label={`Remove ${rec?.name ?? ensLabel(ens)}`}
-                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-ink text-[11px] leading-none text-white shadow-card"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <span className="w-full truncate text-center text-[11px] font-medium">{rec?.name ?? ensLabel(ens)}</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => move(i, -1)}
-                    disabled={i === 0}
-                    aria-label="Move left"
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-wash text-[11px] font-bold text-ink disabled:opacity-30"
-                  >
-                    ◀
-                  </button>
-                  <button
-                    onClick={() => move(i, 1)}
-                    disabled={i === order.length - 1}
-                    aria-label="Move right"
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-wash text-[11px] font-bold text-ink disabled:opacity-30"
-                  >
-                    ▶
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+            })}
 
-          {/* trailing tile: Add (editing) or See all (normal) */}
-          {editing ? (
-            <button onClick={() => setShowAdd(true)} className="flex flex-col items-center gap-1.5">
-              <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] border-2 border-dashed border-brand/40 text-brand">
-                <span className="text-2xl">＋</span>
-              </div>
-              <span className="w-full truncate text-center text-[11px] font-medium text-brand">Add</span>
-            </button>
-          ) : (
+            {/* trailing tile: See all */}
             <Link href="/catalog" className="flex flex-col items-center gap-1.5">
               <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-wash">
                 <span className="text-2xl">⋯</span>
               </div>
               <span className="w-full truncate text-center text-[11px] font-medium text-muted">See all</span>
             </Link>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Featured */}
         {featured.length > 0 && (
