@@ -89,7 +89,9 @@ src/
     ├── store.ts             localStorage: loyalty, activity, orders (+ spendPoints rewards marketplace)
     ├── pay.ts               payWorld() — MiniKit.pay (USDC/World Chain) + simulated fallback
     ├── nullifiers.ts        used-nullifier store (one-per-human)
-    └── useWorldAuth.ts      walletAuth sign-in hook
+    ├── auth.tsx             walletAuth (SIWE) sign-in context + useAuth hook
+    ├── conversations.ts     persistent Create chats (localStorage)
+    └── homeShortcuts.ts     Home "Sparks" order + pins (localStorage)
 ```
 
 ---
@@ -136,7 +138,7 @@ src/
 | `WALRUS_PUBLISHER_URL`, `WALRUS_AGGREGATOR_URL` | Walrus | `PUT /v1/blobs` to store the manifest **and uploaded cover images** (`storeBytes` via `/api/upload`), `GET /v1/blobs/{id}` to read (images served through `/api/blob/{id}`) | publish still records locally + clear error if Walrus is down |
 | `WALRUS_NETWORK`, `SUI_ADDRESS`, `FORGE_PUBLIC_CATALOG_BLOB_ID` | Walrus CLI + Sui wallet | Local `walrus store` for **public** assets (seed catalog, manifests); keystore at `~/.sui/sui_config/sui.keystore` | optional; app runs from in-memory seeds without it |
 
-**Live World ID app (created via the developer-portal MCP, team "dApp Dock"):** app `app_e642b84ff13c702c62e16c5997d27db5`, RP `rp_3c60d66756b89a0c` (registered on-chain), action `verify-human`. The Dev Portal app is in **mini-app** mode, named **Forge**. Set its **integration URL** to your deployed/tunnel URL before testing in World App.
+**Live World ID app (created via the developer-portal MCP, team "dApp Dock"):** app `app_76c26b1af08593ac89bd7e3e80862e0a`, RP `rp_a4d9018439240167` (registered on-chain), action `verify-human`. The Dev Portal app is in **mini-app** mode, named **Forge**. Set its **integration URL** to your deployed/tunnel URL before testing in World App. (An earlier app `app_e642b84…` is retired — `.env` is the source of truth.)
 
 **Live ENS v2 app (Sepolia):** parent **`forgedapp.eth`** registered on ENS v2 (`tx 0x4633cc1b…`), owned by the registrar wallet `0x174B3865…0675`. v2 addresses (discovered on-chain): ETHRegistry `0xDEDB9291…B398B67`, ETHRegistrar `0x8c2E866B…aFFcA`, VerifiableFactory `0xd2a632d8…36198`, UserRegistryImpl `0x0F99e7Ea…2917`, ResolverImpl `0xE566a1FB…4cb9c`, mock USDC `0x3DfC8b53…38D9` (open `mint`). Forge's subregistry for `forgedapp.eth` = `0x2c8d4cc1…F4413`, shared resolver = `0xAa0fD17B…937c`. Live subnames: `hello.forgedapp.eth`, `coffee-tip.forgedapp.eth` (both resolve `agent-context` via the Universal Resolver). Re-run `scripts/setup-ens-v2-subnames.mjs` if ENS resets the v2 contracts.
 
@@ -157,7 +159,7 @@ In a desktop browser you get the full UI, the agent, Walrus publishing, and the 
 **Preview inside World App:**
 1. Expose the dev server: `ngrok http 3000` (or `npx vercel`) → public HTTPS URL.
 2. Set that URL as the app's **integration URL** in the Developer Portal (or via the `configure_mini_app` MCP tool).
-3. Open [docs.world.org/mini-apps/quick-start/testing](https://docs.world.org/mini-apps/quick-start/testing), enter App ID `app_e642b84ff13c702c62e16c5997d27db5`, scan the QR. (Eruda helps with mobile logs.)
+3. Open [docs.world.org/mini-apps/quick-start/testing](https://docs.world.org/mini-apps/quick-start/testing), enter App ID `app_76c26b1af08593ac89bd7e3e80862e0a`, scan the QR. (Eruda helps with mobile logs.)
 
 **Verify before shipping:** `npx tsc --noEmit`, `npm run build`.
 
@@ -188,6 +190,7 @@ In a desktop browser you get the full UI, the agent, Walrus publishing, and the 
 
 | Date | Author | Change |
 |---|---|---|
+| 2026-06-14 | Verify agent | **Docs sync.** Corrected the live World ID app id/RP to the current `app_76c26b1af08593ac89bd7e3e80862e0a` / `rp_a4d9018439240167` (the `app_e642b84…` app is retired; `.env` is the source of truth) in §6/§7. Fixed the §3 repo map (`auth.tsx` not `useWorldAuth.ts`; added `conversations.ts`, `homeShortcuts.ts`). Rewrote the README to the current app (≈20 Sparks, Activity hub, `/identity`, interactive Sparks, on-chain ENS v2 minting now live + verified). |
 | 2026-06-14 | Verify agent | **Fixed ENS v2 record writes (publish minted names but records reverted).** Live testing showed `/api/publish` minted the subname but `mode: catalog-only` — every `setText` reverted on-chain. Two compounding bugs in `lib/ensV2.ts`: (1) the subname was registered with `roleBitmap: 0`, granting the owner no record-writing role, so the resolver rejected `setText`; (2) `setText` was hard-capped at `gas: 160000`, but a ~450-byte `agent-context` JSON needs ~426k gas (≈16 cold SSTOREs) → out-of-gas. Fix: register with `ROLES_ALL` (0x1111…1111, matching the registrar's root grant) and drop the fixed gas cap so viem estimates. Verified live end-to-end: publish now returns `mode: on-chain` in **2 txs** (was 4, with 3 reverting) and the ENSIP-26 `agent-context` (Walrus manifest pointer) resolves via the Universal Resolver. `tsc` + `next build` clean. |
 | 2026-06-14 | Build agent | **GitHub issues #6 + #7.** Nav bar: portal to `document.body`, `z-[9999]`, safe-area on nav only, `overscroll-behavior-y: none` on html/body (fixes drift on fast scroll). Hearts: removed from Home Featured + catalog cards (overlapped icons); pin/unpin only on the Spark run page header. `npm run build` clean. |
 | 2026-06-14 | Build agent | **Per-Spark visual personality.** `sparkTheme.ts` gives every seed Spark its own accent, gradient hero, pattern, layout family (meter/ticket/ballot/jar/agent/…), and vibe line. `SparkShell` + themed `SparkComponents` replace the generic blue wash — parking gets a digital meter, split bill gets receipt + people silhouettes, DAO vote gets formal ballot, agents get terminal textarea, transit gets holographic pass card, etc. Run page tints to Spark soft color. `npm run build` clean. |
@@ -212,4 +215,4 @@ In a desktop browser you get the full UI, the agent, Walrus publishing, and the 
 
 ---
 
-*Last reviewed against the codebase: 2026-06-13 (Forge — Next.js 16 World App Mini App; World + ENS + Walrus; floating oval nav; agent → manifest → Walrus publish → World-ID-gated run).*
+*Last reviewed against the codebase: 2026-06-14 (Forge — Next.js 16 World App Mini App; World + ENS + Walrus; floating oval nav; agent → manifest → Walrus publish → World-ID-gated run). ENS v2 subname mint + ENSIP-26 record write verified live end-to-end on Sepolia (`mode: on-chain`, record resolves via the Universal Resolver) after the `ROLES_ALL` + gas-estimate fix.*
