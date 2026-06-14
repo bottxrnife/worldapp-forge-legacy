@@ -177,7 +177,7 @@ export default function CatalogPage() {
                     key={c}
                     onClick={() => setChip(c)}
                     className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
-                      chip === c ? "bg-brand text-white shadow-pop" : "bg-wash text-ink"
+                      chip === c ? "bg-brand text-white" : "bg-wash text-ink"
                     }`}
                   >
                     {c}
