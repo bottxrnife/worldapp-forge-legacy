@@ -43,7 +43,7 @@ src/
 │   ├── globals.css          Tailwind v4 + design tokens (white + wash)
 │   ├── page.tsx             Home — World-App-style: sign-in, agent hero, Mini Apps grid, Featured
 │   ├── create/page.tsx      Design agent chat → draft card → preview/publish (composer floats above the bar)
-│   ├── catalog/page.tsx     Sparks — Featured rail + category sections (vertical page + horizontal rails, Walrus cover images)
+│   ├── catalog/page.tsx     Sparks — Your Sparks + Featured rails + category sections (Walrus cover images)
 │   ├── app/[ens]/page.tsx   Run an app (ManifestRunner; shows Walrus cover image)
 │   ├── publish/page.tsx     Publish: optional Walrus cover image + writes manifest to Walrus, records ENS name
 │   ├── activity/page.tsx    Activity feed (receipts) + total points + loyalty passes
@@ -91,7 +91,8 @@ src/
     ├── nullifiers.ts        used-nullifier store (one-per-human)
     ├── auth.tsx             walletAuth (SIWE) sign-in context + useAuth hook
     ├── conversations.ts     persistent Create chats (localStorage)
-    └── homeShortcuts.ts     Home "Sparks" order + pins (localStorage)
+    ├── homeShortcuts.ts     Home "Sparks" order + pins (localStorage)
+    └── mySparks.ts          User-published Sparks (localStorage) — "Your Sparks" rail + run fallback
 ```
 
 ---
@@ -190,6 +191,7 @@ In a desktop browser you get the full UI, the agent, Walrus publishing, and the 
 
 | Date | Author | Change |
 |---|---|---|
+| 2026-06-14 | Build agent | **"Your Sparks" rail.** Published Sparks persist in `mySparks.ts` (localStorage + full manifest). Catalog + Home show a **Your Sparks** section above Featured; publish success links there; run page falls back to the local manifest if the server catalog cold-starts. |
 | 2026-06-14 | Build agent | **Issue audit #8–#16 (real fixes).** Root cause: `ManifestRunner` returned `<RestaurantApp>` without `compact`/`editable`/`onManifestChange`, so menu Spark previews couldn't upload images (#11/#12). Nav bar now pins via `visualViewport` **top** positioning (#6/#9). Preview overlay uses fixed header + scroll body (#10); OS back handled by `BackStackProvider` (#5). Home/catalog sticky headers (#4); Add sheet backdrop decoupled from sheet (#1). Dark-mode Spark contrast extended to `[data-spark-shell]` (#13). `isSparkCreator()` for Edit (#12). Ticket/unlock icon paths redrawn (#15/#16). |
 | 2026-06-14 | Build agent | **GitHub issues #8–#16 (batch UX fix).** #8 Human badge moved off cover art to the title row on catalog cards. #9/#10 FloatingNav: visualViewport bottom pin retained; Create FAB sized to sit inside the pill (no overlap); preview overlay hides the nav bar. #11 Image uploads: `ImageUploadSlot` + `walrusClient.ts` on Create draft/preview, Publish, and menu items; compact editable hero strip in preview. #12 Edit flow: published Spark run page → Edit → `/create?edit=1` reopens agent with draft. #13 Dark-mode Spark panel contrast via `[data-spark-panel]` + `--spark-ink` overrides in globals.css. #14 `WalrusProof` shows copyable Walrus URLs on run/publish pages. #15/#16 Redrew `ticket` + `unlock` icon paths (stub/perforation and shackle alignment). `tsc` + `next build` clean. |
 | 2026-06-14 | Verify agent | **Docs sync.** Corrected the live World ID app id/RP to the current `app_76c26b1af08593ac89bd7e3e80862e0a` / `rp_a4d9018439240167` (the `app_e642b84…` app is retired; `.env` is the source of truth) in §6/§7. Fixed the §3 repo map (`auth.tsx` not `useWorldAuth.ts`; added `conversations.ts`, `homeShortcuts.ts`). Rewrote the README to the current app (≈20 Sparks, Activity hub, `/identity`, interactive Sparks, on-chain ENS v2 minting now live + verified). |

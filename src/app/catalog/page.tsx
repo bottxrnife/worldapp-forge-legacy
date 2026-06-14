@@ -4,6 +4,7 @@ import { FloatingNav } from "@/components/FloatingNav";
 import { Icon } from "@/components/Icon";
 import { SparkArt } from "@/components/SparkArt";
 import type { AppRecord } from "@/lib/catalog";
+import { resolveMySparkApps } from "@/lib/mySparks";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -76,6 +77,7 @@ function Rail({ children }: { children: ReactNode }) {
 
 export default function CatalogPage() {
   const [apps, setApps] = useState<AppRecord[]>([]);
+  const [yours, setYours] = useState<AppRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [chip, setChip] = useState<Chip>("All");
 
@@ -85,21 +87,30 @@ export default function CatalogPage() {
       .then((d) => {
         const list: AppRecord[] = d.apps ?? [];
         setApps(list);
+        setYours(resolveMySparkApps(list));
       })
       .finally(() => setLoading(false));
   }, []);
 
+  const mine = useMemo(() => new Set(yours.map((a) => a.ensName)), [yours]);
+
   const featured = useMemo(() => {
-    const f = apps.filter((a) => a.featured);
-    return f.length > 0 ? f : apps.slice(0, 5);
-  }, [apps]);
+    const f = apps.filter((a) => a.featured && !mine.has(a.ensName));
+    return f.length > 0 ? f : apps.filter((a) => !mine.has(a.ensName)).slice(0, 5);
+  }, [apps, mine]);
+
+  const yourSparks = useMemo(() => {
+    if (chip === "All") return yours;
+    return yours.filter((a) => a.category === chip);
+  }, [yours, chip]);
 
   const sections = useMemo(
     () =>
-      CATEGORIES.map((cat) => ({ cat, items: apps.filter((a) => a.category === cat) })).filter(
-        (s) => s.items.length > 0,
-      ),
-    [apps],
+      CATEGORIES.map((cat) => ({
+        cat,
+        items: apps.filter((a) => a.category === cat && !mine.has(a.ensName)),
+      })).filter((s) => s.items.length > 0),
+    [apps, mine],
   );
 
   const visible = sections.filter((s) => chip === "All" || s.cat === (chip as Category));
@@ -126,11 +137,26 @@ export default function CatalogPage() {
               ))}
             </div>
           )}
+          {!loading && apps.length === 0 && yours.length > 0 && (
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+              {CHIPS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setChip(c)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
+                    chip === c ? "bg-brand text-white" : "bg-wash text-ink"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
-        {!loading && apps.length === 0 && (
+        {!loading && apps.length === 0 && yours.length === 0 && (
           <div className="mt-8 rounded-3xl bg-wash p-6 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-surface shadow-[0_4px_16px_rgba(11,16,32,0.08)]">
               <Icon name="spark" size={26} className="text-faint" />
@@ -146,8 +172,24 @@ export default function CatalogPage() {
           </div>
         )}
 
-        {!loading && apps.length > 0 && (
+        {!loading && (apps.length > 0 || yours.length > 0) && (
           <>
+            {yourSparks.length > 0 && (
+              <section className="mt-6">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="display text-2xl font-extrabold">Your Sparks</h3>
+                  <span className="text-[13px] font-semibold text-muted">
+                    {yourSparks.length} {yourSparks.length === 1 ? "Spark" : "Sparks"}
+                  </span>
+                </div>
+                <Rail>
+                  {yourSparks.map((a) => (
+                    <SparkCard key={a.ensName} a={a} featured />
+                  ))}
+                </Rail>
+              </section>
+            )}
+
             {/* Featured rail */}
             {featured.length > 0 && (
               <section className="mt-6">

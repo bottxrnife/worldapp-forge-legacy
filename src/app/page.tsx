@@ -8,6 +8,7 @@ import type { AppRecord } from "@/lib/catalog";
 import { APP } from "@/lib/config";
 import { useBackHandler } from "@/lib/backStack";
 import { getShortcuts, saveShortcuts } from "@/lib/homeShortcuts";
+import { resolveMySparkApps } from "@/lib/mySparks";
 import { getActivity, type ActivityEntry } from "@/lib/store";
 import {
   DndContext,
@@ -71,6 +72,7 @@ function SortableSpark({
 export default function Home() {
   const { user } = useAuth();
   const [apps, setApps] = useState<AppRecord[]>([]);
+  const [yours, setYours] = useState<AppRecord[]>([]);
   const [order, setOrder] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -83,6 +85,7 @@ export default function Home() {
       .then((d) => {
         const list: AppRecord[] = d.apps ?? [];
         setApps(list);
+        setYours(resolveMySparkApps(list));
         const valid = new Set(list.map((a) => a.ensName));
         const initial = getShortcuts() ?? list.slice(0, 6).map((a) => a.ensName);
         setOrder(initial.filter((e) => valid.has(e)));
@@ -104,7 +107,9 @@ export default function Home() {
     return m;
   }, [apps]);
 
-  const featured = apps.slice(0, 5);
+  const mine = useMemo(() => new Set(yours.map((a) => a.ensName)), [yours]);
+
+  const featured = apps.filter((a) => !mine.has(a.ensName)).slice(0, 5);
   const available = apps.filter((a) => !order.includes(a.ensName));
 
   const filteredAvailable = useMemo(() => {
@@ -288,6 +293,38 @@ export default function Home() {
               <span className="w-full truncate text-center text-[11px] font-medium text-muted">See all</span>
             </Link>
           </div>
+        )}
+
+        {/* Your Sparks */}
+        {yours.length > 0 && (
+          <>
+            <div className="mt-8 flex items-center justify-between">
+              <h3 className="display text-xl font-extrabold">Your Sparks</h3>
+              <Link href="/catalog" className="text-sm font-semibold text-brand-strong">
+                See all ›
+              </Link>
+            </div>
+            <div className="-mx-5 mt-3 flex gap-3 overflow-x-auto px-5 pb-1" style={{ scrollbarWidth: "none" }}>
+              {yours.map((a) => (
+                <Link
+                  key={a.ensName}
+                  href={`/app/${encodeURIComponent(a.ensName)}`}
+                  className="w-[230px] shrink-0 rounded-3xl bg-wash p-4 ring-2 ring-brand/20"
+                >
+                  <SparkArt ens={a.ensName} category={a.category} size={48} imageBlobId={a.imageBlobId} />
+                  <div className="mt-3 flex items-center gap-2">
+                    <p className="text-[15px] font-bold">{a.name}</p>
+                    {a.requiresWorldId && (
+                      <span className="shrink-0 rounded-full bg-success-bg px-2 py-0.5 text-[10px] font-bold text-success">
+                        Human
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[13px] text-muted">{a.tagline ?? a.description}</p>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Featured */}

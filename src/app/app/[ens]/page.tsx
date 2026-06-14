@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import type { AppRecord } from "@/lib/catalog";
 import { isSparkCreator } from "@/lib/creatorMatch";
 import { readShortcuts, toggleShortcut } from "@/lib/homeShortcuts";
+import { getMySparkManifest } from "@/lib/mySparks";
 import { sparkTheme } from "@/lib/sparkTheme";
 import type { DappManifest } from "@/lib/types";
 import { useParams, useRouter } from "next/navigation";
@@ -34,9 +35,21 @@ export default function AppRun() {
         if (d.manifest) {
           setManifest(d.manifest);
           setStatus("ok");
-        } else setStatus("notfound");
+        } else {
+          const local = getMySparkManifest(ens);
+          if (local) {
+            setManifest(local);
+            setStatus("ok");
+          } else setStatus("notfound");
+        }
       })
-      .catch(() => setStatus("notfound"));
+      .catch(() => {
+        const local = getMySparkManifest(ens);
+        if (local) {
+          setManifest(local);
+          setStatus("ok");
+        } else setStatus("notfound");
+      });
   }, [ens]);
 
   useEffect(() => {

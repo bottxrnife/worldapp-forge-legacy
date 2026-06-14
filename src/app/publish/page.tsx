@@ -4,6 +4,7 @@ import { ImageUploadSlot } from "@/components/ImageUploadSlot";
 import { WalrusProof } from "@/components/WalrusProof";
 import { Button, Card, Pill } from "@/components/ui";
 import { APP } from "@/lib/config";
+import { addMySpark } from "@/lib/mySparks";
 import type { DappManifest, ManifestComponent } from "@/lib/types";
 import { useEffect, useState } from "react";
 
@@ -58,7 +59,13 @@ export default function PublishPage() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Publish failed");
-      else setResult(data);
+      else {
+        setResult(data);
+        addMySpark(
+          { ...draft, storage: { ...draft.storage, manifestBlobId: data.blobId ?? draft.storage?.manifestBlobId } },
+          data.blobId ?? undefined,
+        );
+      }
     } catch (e) {
       setError(String(e));
     } finally {
@@ -229,9 +236,9 @@ export default function PublishPage() {
           )}
           <div className="mt-3 flex justify-center gap-2">
             <Button href="/catalog" variant="soft">
-              View catalog
+              Your Sparks
             </Button>
-            <Button href={`/app/${encodeURIComponent(result.ensName)}`}>Open app</Button>
+            <Button href={`/app/${encodeURIComponent(result.ensName)}`}>Open Spark</Button>
           </div>
         </Card>
       ) : (
